@@ -23,15 +23,14 @@ def get_vaf(y_test,y_test_pred):
     return vaf_list
 
 ### Wiener filter (Linear regression)
-def lin_reg_model(X_flat_train,y_train,X_flat_test):
+def lin_reg_model(X_flat_train,y_train):
 
     regr = linear_model.LinearRegression()
     regr.fit(X_flat_train, y_train) #Train
-    y_test_pred=regr.predict(X_flat_test)
-    return y_test_pred
+    return regr
 
 ## Simple RNN
-def SimpleRNN_model(X_train,y_train,X_test,units=400,dropout=0,num_epochs=10,verbose=0):
+def SimpleRNN_model(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
     model=Sequential()
     model.add(SimpleRNN(units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=dropout,dropout_U=dropout))
     if dropout!=0:
@@ -39,11 +38,10 @@ def SimpleRNN_model(X_train,y_train,X_test,units=400,dropout=0,num_epochs=10,ver
     model.add(Dense(y_train.shape[1],init='uniform'))
     model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy'])
     model.fit(X_train,y_train,nb_epoch=num_epochs,verbose=verbose)
-    y_test_pred=model.predict(X_test)
-    return y_test_pred
+    return model
 
 ### GRU (Gated Recurrent Unit)
-def GRU_model(X_train,y_train,X_test,units=400,dropout=0,num_epochs=10,verbose=0):
+def GRU_model(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
     model=Sequential()
     model.add(GRU(units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=dropout,dropout_U=dropout))
     if dropout!=0:
@@ -51,11 +49,10 @@ def GRU_model(X_train,y_train,X_test,units=400,dropout=0,num_epochs=10,verbose=0
     model.add(Dense(y_train.shape[1],init='uniform'))
     model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy'])
     model.fit(X_train,y_train,nb_epoch=num_epochs,verbose=verbose)
-    y_test_pred=model.predict(X_test)
-    return y_test_pred
+    return model
 
 ### LSTM (Long Short Term Memory)
-def LSTM_model(X_train,y_train,X_test,units=400,dropout=0,num_epochs=10,verbose=0):
+def LSTM_model(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
     model=Sequential()
     model.add(LSTM(units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=dropout,dropout_U=dropout))
     if dropout!=0:
@@ -63,11 +60,10 @@ def LSTM_model(X_train,y_train,X_test,units=400,dropout=0,num_epochs=10,verbose=
     model.add(Dense(y_train.shape[1],init='uniform'))
     model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy'])
     model.fit(X_train,y_train,nb_epoch=num_epochs,verbose=verbose)
-    y_test_pred=model.predict(X_test)
-    return y_test_pred
+    return model
 
 ### XGBoost (Extreme Gradient Boosting)
-def xgb_model(X_train,y_train,X_test,max_depth=3,num_round=300):
+def xgb_model(X_train,y_train,max_depth=3,num_round=300):
 
     num_outputs=y_train.shape[1]
 
@@ -79,15 +75,21 @@ def xgb_model(X_train,y_train,X_test,max_depth=3,num_round=300):
         'silent': 1}
     param['nthread'] = -1 #with -1 it will use all available threads
 
-    dtest = xgb.DMatrix(X_test)
-
-    y_test_pred=np.empty([X_test.shape[0],num_outputs])
-
+    models=[]
     for y_idx in range(num_outputs):
 
         dtrain = xgb.DMatrix(X_train, label=y_train[:,y_idx])
         bst = xgb.train(param, dtrain, num_round)
-        # make prediction
-        y_test_pred[:,y_idx] = bst.predict(dtest)
+        models.append(bst)
 
+
+    return models
+
+def xgb_predict(models,X_test):
+    dtest = xgb.DMatrix(X_test)
+    num_outputs=len(models)
+    y_test_pred=np.empty([X_test.shape[0],num_outputs])
+    for y_idx in range(num_outputs):
+        bst=models[y_idx]
+        y_test_pred[:,y_idx] = bst.predict(dtest)
     return y_test_pred

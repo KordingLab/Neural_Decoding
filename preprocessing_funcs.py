@@ -54,14 +54,15 @@ def bin_output(outputs,output_times,dt,wdw_start,wdw_end,downsample_factor=1):
 ###Function that creates the covariate matrix of neural activity###
 #For every time bin, there are the firing rates of all neurons from the specified number of time bins before (and after)
 #The output is a matrix of size "number of total time bins" x "number of time bins used as history" x "number of neurons"
-def get_spikes_with_history(neural_data,bins_before,bins_after):
+def get_spikes_with_history(neural_data,bins_before,bins_after,bins_current=1):
     num_examples=neural_data.shape[0]
     num_neurons=neural_data.shape[1]
-    X=np.empty([num_examples,bins_before+bins_after,num_neurons])
+    total_bins=bins_before+bins_after+bins_current
+    X=np.empty([num_examples,total_bins,num_neurons])
     X[:] = np.NaN
     start_idx=0
     for i in range(num_examples-bins_before-bins_after):
-        end_idx=start_idx+bins_before+bins_after;
+        end_idx=start_idx+total_bins;
         X[i+bins_before,:,:]=neural_data[start_idx:end_idx,:]
         start_idx=start_idx+1;
     return X
