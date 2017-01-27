@@ -5,6 +5,7 @@
 import numpy as np
 from sklearn import linear_model
 import xgboost as xgb
+from numpy.linalg import inv as inv
 
 #Import everything for keras
 from keras.models import Sequential
