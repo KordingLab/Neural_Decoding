@@ -50,7 +50,7 @@ def DNN_model(X_train,y_train,num_layers=1,units=400,dropout=0,num_epochs=10,ver
     if dropout!=0:
         model.add(Dropout(dropout))
     for layer in range(num_layers-1):
-        model.add(Dense(units),init='uniform'))
+        model.add(Dense(units,init='uniform'))
         model.add(Activation('tanh'))
         if dropout!=0:
             model.add(Dropout(dropout))
