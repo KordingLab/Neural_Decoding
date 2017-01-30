@@ -31,28 +31,29 @@ def lin_reg_model(X_flat_train,y_train):
     return regr
 
 ##Feedforward NN
-def DNN_model(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
-    model=Sequential()
-    model.add(Dense(units,input_dim=X_train.shape[1],init='uniform'))
-    model.add(Activation('tanh'))
-    if dropout!=0:
-        model.add(Dropout(dropout))
-    model.add(Dense(y_train.shape[1],init='uniform'))
-    model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy'])
-    model.fit(X_train,y_train,nb_epoch=num_epochs,verbose=verbose)
-    return model
+# def DNN_model(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
+#     model=Sequential()
+#     model.add(Dense(units,input_dim=X_train.shape[1],init='uniform'))
+#     model.add(Activation('tanh'))
+#     if dropout!=0:
+#         model.add(Dropout(dropout))
+#     model.add(Dense(y_train.shape[1],init='uniform'))
+#     model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy'])
+#     model.fit(X_train,y_train,nb_epoch=num_epochs,verbose=verbose)
+#     return model
 
 ##Feedforward NN - 2 hidden layers
-def DNN_model2(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
+def DNN_model(X_train,y_train,num_layers=1,units=400,dropout=0,num_epochs=10,verbose=0):
     model=Sequential()
     model.add(Dense(units,input_dim=X_train.shape[1],init='uniform'))
     model.add(Activation('tanh'))
     if dropout!=0:
         model.add(Dropout(dropout))
-    model.add(Dense(units),init='uniform'))
-    model.add(Activation('tanh'))
-    if dropout!=0:
-        model.add(Dropout(dropout))
+    for layer in range(num_layers-1):
+        model.add(Dense(units),init='uniform'))
+        model.add(Activation('tanh'))
+        if dropout!=0:
+            model.add(Dropout(dropout))
     model.add(Dense(y_train.shape[1],init='uniform'))
     model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy'])
     model.fit(X_train,y_train,nb_epoch=num_epochs,verbose=verbose)
