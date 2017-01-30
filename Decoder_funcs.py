@@ -49,7 +49,7 @@ def DNN_model2(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
     model.add(Activation('tanh'))
     if dropout!=0:
         model.add(Dropout(dropout))
-    model.add(Dense(np.round(units/2),init='uniform'))
+    model.add(Dense(units),init='uniform'))
     model.add(Activation('tanh'))
     if dropout!=0:
         model.add(Dropout(dropout))
