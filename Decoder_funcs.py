@@ -33,7 +33,8 @@ def lin_reg_model(X_flat_train,y_train):
 ##Feedforward NN
 def DNN_model(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
     model=Sequential()
-    model.add(Dense(units,input_dim=X_train.shape[1]))
+    model.add(Dense(units,input_dim=X_train.shape[1],init='uniform'))
+    model.add(Activation('tanh'))
     if dropout!=0:
         model.add(Dropout(dropout))
     model.add(Dense(y_train.shape[1],init='uniform'))
