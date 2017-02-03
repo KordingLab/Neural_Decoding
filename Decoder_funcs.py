@@ -1,46 +1,91 @@
 
 # coding: utf-8
 
-#Import packages
+#### IMPORT PACKAGES #####
 import numpy as np
-from sklearn import linear_model
-import xgboost as xgb
-from numpy.linalg import inv as inv
+from numpy.linalg import inv as inv #Used in kalman filter
+from sklearn import linear_model #For linear regression (wiener filter)
+try:
+    import xgboost as xgb #For xgboost
+except ImportError, e:
+    print("\nWARNING: Xgboost package is not installed. You will be unable to use the xgboost decoder")
+    pass
 
-#Import everything for keras
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, LSTM, Flatten, SimpleRNN, GRU, BatchNormalization
-from keras.regularizers import l2, activity_l2, l1
-from keras.callbacks import EarlyStopping
+#Import functions for Keras
+#Note that Keras has many more built-in functions that I have not imported because I have not used them
+#But if you want to modify the decoders with other functions (e.g. regularization), import them here
+try:
+    from keras.models import Sequential
+    from keras.layers import Dense, LSTM, SimpleRNN, GRU, Activation, Dropout
+except ImportError, e:
+    print("\nWARNING: Keras package is not installed. You will be unable to use all neural net decoders")
+    pass
+
+
+
+#### FUNCTIONS TO GET METRICS OF DECODING PERFORMANCE ####
 
 #Function to get VAF (variance accounted for)
+#Function inputs are:
+#y_test - the true outputs (a matrix of size number of examples x number of outputs)
+#y_test_pred - the predicted outputs (a matrix of size number of examples x number of outputs)
+#Function outputs are:
+#vaf_list: A list of VAFs for each output
 def get_vaf(y_test,y_test_pred):
 
-    vaf_list=[]
-    for i in range(y_test.shape[1]):
+    vaf_list=[] #Initialize a list that will contain the vafs for all the outputs
+    for i in range(y_test.shape[1]): #Loop through outputs
+        #Compute vaf for each output
         y_mean=np.mean(y_test[:,i])
         vaf=1-np.sum((y_test_pred[:,i]-y_test[:,i])**2)/np.sum((y_test[:,i]-y_mean)**2)
-        vaf_list.append(vaf)
-    return vaf_list
+        vaf_list.append(vaf) #Append VAF of this output to the list
+    return vaf_list #Return the list of VAFs
 
-### Wiener filter (Linear regression)
+
+
+
+
+#### DECODER FUNCTIONS ####
+
+
+
+### WIENER FILTER (Linear regression) ####
+#Function inputs are:
+#X_flat_train - the covariates of neural data
+#y_train - the outputs being predicted
+#Function outputs are:
+#model - the model that has been fit
 def lin_reg_model(X_flat_train,y_train):
 
-    regr = linear_model.LinearRegression()
-    regr.fit(X_flat_train, y_train) #Train
-    return regr
+    model = linear_model.LinearRegression() #Initialize linear regression model
+    model.fit(X_flat_train, y_train) #Train the model
+    return model #Return the model
 
-##Feedforward NN
-# def DNN_model(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
-#     model=Sequential()
-#     model.add(Dense(units,input_dim=X_train.shape[1],init='uniform'))
-#     model.add(Activation('tanh'))
-#     if dropout!=0:
-#         model.add(Dropout(dropout))
-#     model.add(Dense(y_train.shape[1],init='uniform'))
-#     model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy'])
-#     model.fit(X_train,y_train,nb_epoch=num_epochs,verbose=verbose)
-#     return model
+
+
+#### WIENER CASCADE (Linear Nonlinear model) #####
+def wiener_casc_model(X_flat_train,y_train,deg=3):
+    num_outputs=y_train.shape[1]
+    models=[]
+    for i in range(num_outputs):
+        regr = linear_model.LinearRegression()
+        regr.fit(X_flat_train, y_train[:,i]) #Fit linear
+        y_train_pred_lin=regr.predict(X_flat_train)
+        p=np.polyfit(y_train_pred_lin,y_train[:,i],deg) #Fit nonlinear
+        models.append([regr,p])
+    return models
+
+def wiener_casc_predict(models,X_flat_test):
+    num_outputs=len(models)
+    y_test_pred_ln=np.empty([X_flat_test.shape[0],num_outputs])
+    for i in range(num_outputs):
+        [regr,p]=models[i]
+        #Predictions on test set
+        y_test_pred_lin=regr.predict(X_flat_test)
+        y_test_pred_ln[:,i]=np.polyval(p,y_test_pred_lin)
+    return y_test_pred_ln
+
+
 
 ##Feedforward NN - 2 hidden layers
 def DNN_model(X_train,y_train,num_layers=1,units=400,dropout=0,num_epochs=10,verbose=0):
@@ -58,6 +103,9 @@ def DNN_model(X_train,y_train,num_layers=1,units=400,dropout=0,num_epochs=10,ver
     model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy'])
     model.fit(X_train,y_train,nb_epoch=num_epochs,verbose=verbose)
     return model
+
+
+
 
 ## Simple RNN
 def SimpleRNN_model(X_train,y_train,units=400,dropout=0,num_epochs=10,verbose=0):
@@ -123,30 +171,6 @@ def xgb_predict(models,X_test):
         bst=models[y_idx]
         y_test_pred[:,y_idx] = bst.predict(dtest)
     return y_test_pred
-
-
-### Wiener Cascade (Linear Nonlinear model)
-def wiener_casc_model(X_flat_train,y_train,deg=3):
-    num_outputs=y_train.shape[1]
-    models=[]
-    for i in range(num_outputs):
-        regr = linear_model.LinearRegression()
-        regr.fit(X_flat_train, y_train[:,i]) #Fit linear
-        y_train_pred_lin=regr.predict(X_flat_train)
-        p=np.polyfit(y_train_pred_lin,y_train[:,i],deg) #Fit nonlinear
-        models.append([regr,p])
-    return models
-
-def wiener_casc_predict(models,X_flat_test):
-    num_outputs=len(models)
-    y_test_pred_ln=np.empty([X_flat_test.shape[0],num_outputs])
-    for i in range(num_outputs):
-        [regr,p]=models[i]
-        #Predictions on test set
-        y_test_pred_lin=regr.predict(X_flat_test)
-        y_test_pred_ln[:,i]=np.polyval(p,y_test_pred_lin)
-    return y_test_pred_ln
-
 
 ### Kalman Filter ###
 def kf_model(zs,xs):
