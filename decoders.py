@@ -652,7 +652,7 @@ class XGBoostDecoder(object):
 
         models=[] #Initialize list of models (there will be a separate model for each output)
         for y_idx in range(num_outputs): #Loop through outputs
-            dtrain = xgb.DMatrix(X_train, label=y_train[:,y_idx]) #Put in correct format for XGB
+            dtrain = xgb.DMatrix(X_flat_train, label=y_train[:,y_idx]) #Put in correct format for XGB
             bst = xgb.train(param, dtrain, self.num_round) #Train model
             models.append(bst) #Add fit model to list of models
 
