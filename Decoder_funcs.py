@@ -7,7 +7,7 @@ from numpy.linalg import inv as inv #Used in kalman filter
 from sklearn import linear_model #For linear regression (wiener filter)
 try:
     import xgboost as xgb #For xgboost
-except ImportError, e:
+except ImportError:
     print("\nWARNING: Xgboost package is not installed. You will be unable to use the xgboost decoder")
     pass
 
@@ -17,7 +17,7 @@ except ImportError, e:
 try:
     from keras.models import Sequential
     from keras.layers import Dense, LSTM, SimpleRNN, GRU, Activation, Dropout
-except ImportError, e:
+except ImportError:
     print("\nWARNING: Keras package is not installed. You will be unable to use all neural net decoders")
     pass
 
