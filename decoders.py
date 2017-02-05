@@ -154,6 +154,118 @@ class WienerCascadeDecoder(object):
 
 
 
+##################### KALMAN FILTER ##########################
+
+class KalmanFilterDecoder(object):
+
+    """
+    Class for the Kalman Filter Decoder
+
+    There are no parameters to set.
+    """
+
+    def __init__(self):
+        return
+
+
+    def fit(self,X_kf_train,y_train):
+
+        """
+        Train Kalman Filter Decoder
+
+        Parameters
+        ----------
+        X_kf_train: numpy 2d array of shape [n_samples(i.e. timebins) , n_neurons]
+            This is the neural data in Kalman filter format.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples(i.e. timebins), n_outputs]
+            This is the outputs that are being predicted
+        """
+
+        #First we'll rename and reformat the variables to be in a more standard kalman filter nomenclature (specifically that from Wu et al):
+        #xs are the state (here, the variable we're predicting, i.e. y_train)
+        #zs are the observed variable (neural data here, i.e. X_kf_train)
+        X=np.matrix(y_train.T)
+        Z=np.matrix(X_kf_train.T)
+
+        #number of time bins
+        nt=X.shape[1]
+
+        #Calculate the transition matrix (from x_t to x_t+1) using least-squares, and compute its covariance
+        #In our case, this is the transition from one kinematic state to the next
+        X2 = X[:,1:]
+        X1 = X[:,0:nt-1]
+        A=X2*X1.T*inv(X1*X1.T) #Transition matrix
+        W=(X2-A*X1)*(X2-A*X1).T/(nt-1) #Covariance of transition matrix. Note we divide by nt-1 since only nt-1 points were used in the computation (that's the length of X1 and X2)
+
+        #Calculate the measurement matrix (from x_t to z_t) using least-squares, and compute its covariance
+        #In our case, this is the transformation from kinematics to spikes
+        H = Z*X.T*(inv(X*X.T)) #Measurement matrix
+        Q = ((Z - H*X)*((Z - H*X).T)) / nt #Covariance of measurement matrix
+        params=[A,W,H,Q]
+        self.model=params
+
+    def predict(self,X_kf_test,y_test):
+
+        """
+        Predict outcomes using trained Kalman Filter Decoder
+
+        Parameters
+        ----------
+        X_kf_test: numpy 2d array of shape [n_samples(i.e. timebins) , n_neurons]
+            This is the neural data in Kalman filter format.
+
+        y_test_predicted: numpy 2d array of shape [n_samples(i.e. timebins),n_outputs]
+            The actual outputs
+            This parameter is necesary for the Kalman filter (unlike other decoders)
+            because the first value is nececessary for initialization
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples(i.e. timebins),n_outputs]
+            The predicted outputs
+        """
+
+        #Extract parameters
+        A,W,H,Q=self.model
+
+        #First we'll rename and reformat the variables to be in a more standard kalman filter nomenclature (specifically that from Wu et al):
+        #xs are the state (here, the variable we're predicting, i.e. y_train)
+        #zs are the observed variable (neural data here, i.e. X_kf_train)
+        X=np.matrix(y_test.T)
+        Z=np.matrix(X_kf_test.T)
+
+        #Initializations
+        num_states=X.shape[0] #Dimensionality of the state
+        states=np.empty(X.shape) #Keep track of states over time (states is what will be returned as y_test_predicted)
+        P_m=np.matrix(np.zeros([num_states,num_states]))
+        P=np.matrix(np.zeros([num_states,num_states]))
+        state=X[:,0] #Initial state
+        states[:,0]=np.copy(np.squeeze(state))
+
+        #Get predicted state for every time bin
+        for t in range(X.shape[1]-1):
+            #Do first part of state update - based on transition matrix
+            P_m=A*P*A.T+W
+            state_m=A*state
+
+            #Do second part of state update - based on measurement matrix
+            K=P_m*H.T*inv(H*P_m*H.T+Q) #Calculate Kalman gain
+            P=(np.matrix(np.eye(num_states))-K*H)*P_m
+            state=state_m+K*(Z[:,t+1]-H*state_m)
+            states[:,t+1]=np.squeeze(state) #Record state at the timestep
+        y_test_predicted=states.T
+        return y_test_predicted
+
+
+
+
+
+
+
+
+
 ##################### DENSE (FULLY-CONNECTED) NEURAL NETWORK ##########################
 
 class DenseNNDecoder(object):
@@ -329,4 +441,244 @@ class SimpleRNNDecoder(object):
         """
 
         y_test_predicted = self.model.predict(X_test) #Make predictions
+        return y_test_predicted
+
+
+
+##################### GATED RECURRENT UNIT (GRU) DECODER ##########################
+
+class GRUDecoder(object):
+
+    """
+    Class for the gated recurrent unit (GRU) decoder
+
+    Parameters
+    ----------
+    units: integer, optional, default 400
+        Number of hidden units in each layer
+
+    dropout: decimal, optional, default 0
+        Proportion of units that get dropped out
+
+    num_epochs: integer, optional, default 10
+        Number of epochs used for training
+
+    verbose: binary, optional, default=0
+        Whether to show progress of the fit after each epoch
+    """
+
+    def __init__(self,units=400,dropout=0,num_epochs=10,verbose=0):
+         self.units=units
+         self.dropout=dropout
+         self.num_epochs=num_epochs
+         self.verbose=verbose
+
+
+    def fit(self,X_train,y_train):
+
+        """
+        Train GRU Decoder
+
+        Parameters
+        ----------
+        X_train: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+        model=Sequential() #Declare model
+        #Add recurrent layer
+        model.add(GRU(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
+
+        #Add dense connections to output layer
+        model.add(Dense(y_train.shape[1]))
+
+        #Fit model (and set fitting parameters)
+        model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
+        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        self.model=model
+
+
+    def predict(self,X_test):
+
+        """
+        Predict outcomes using trained GRU Decoder
+
+        Parameters
+        ----------
+        X_test: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        y_test_predicted = self.model.predict(X_test) #Make predictions
+        return y_test_predicted
+
+
+
+#################### LONG SHORT TERM MEMORY (LSTM) DECODER ##########################
+
+class LSTMDecoder(object):
+
+    """
+    Class for the gated recurrent unit (GRU) decoder
+
+    Parameters
+    ----------
+    units: integer, optional, default 400
+        Number of hidden units in each layer
+
+    dropout: decimal, optional, default 0
+        Proportion of units that get dropped out
+
+    num_epochs: integer, optional, default 10
+        Number of epochs used for training
+
+    verbose: binary, optional, default=0
+        Whether to show progress of the fit after each epoch
+    """
+
+    def __init__(self,units=400,dropout=0,num_epochs=10,verbose=0):
+         self.units=units
+         self.dropout=dropout
+         self.num_epochs=num_epochs
+         self.verbose=verbose
+
+
+    def fit(self,X_train,y_train):
+
+        """
+        Train LSTM Decoder
+
+        Parameters
+        ----------
+        X_train: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+        model=Sequential() #Declare model
+        #Add recurrent layer
+        model.add(LSTM(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
+
+        #Add dense connections to output layer
+        model.add(Dense(y_train.shape[1]))
+
+        #Fit model (and set fitting parameters)
+        model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
+        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        self.model=model
+
+
+    def predict(self,X_test):
+
+        """
+        Predict outcomes using trained LSTM Decoder
+
+        Parameters
+        ----------
+        X_test: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        y_test_predicted = self.model.predict(X_test) #Make predictions
+        return y_test_predicted
+
+
+
+##################### EXTREME GRADIENT BOOSTING (XGBOOST) ##########################
+
+class XGBoostDecoder(object):
+
+    """
+    Class for the XGBoost Decoder
+
+    Parameters
+    ----------
+    max_depth: integer, optional, default=3
+        the maximum depth of the trees
+
+    num_round: integer, optional, default=300
+        the number of trees that are fit
+    """
+
+    def __init__(self,max_depth=3,num_round=300):
+        self.max_depth=max_depth
+        self.num_round=num_round
+
+
+    def fit(self,X_flat_train,y_train):
+
+        """
+        Train XGBoost Decoder
+
+        Parameters
+        ----------
+        X_flat_train: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+
+        num_outputs=y_train.shape[1] #Number of outputs
+
+        #Set parameters for XGBoost
+        param = {'objective': "reg:linear", #for linear output
+            'eval_metric': "logloss", #loglikelihood loss
+            'max_depth': max_depth, #this is the only parameter we have set, it's one of the way or regularizing
+            'seed': 2925, #for reproducibility
+            'silent': 1}
+        param['nthread'] = -1 #with -1 it will use all available threads
+
+        models=[] #Initialize list of models (there will be a separate model for each output)
+        for y_idx in range(num_outputs): #Loop through outputs
+            dtrain = xgb.DMatrix(X_train, label=y_train[:,y_idx]) #Put in correct format for XGB
+            bst = xgb.train(param, dtrain, num_round) #Train model
+            models.append(bst) #Add fit model to list of models
+
+        self.model=models
+
+
+    def predict(self,X_flat_test):
+
+        """
+        Predict outcomes using trained XGBoost Decoder
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        dtest = xgb.DMatrix(X_test) #Put in XGB format
+        num_outputs=len(models) #Number of outputs
+        y_test_predicted=np.empty([X_test.shape[0],num_outputs]) #Initialize matrix of predicted outputs
+        for y_idx in range(num_outputs): #Loop through outputs
+            bst=self.model[y_idx] #Get fit model for this output
+            y_test_predicted[:,y_idx] = bst.predict(dtest) #Make prediction
         return y_test_predicted
