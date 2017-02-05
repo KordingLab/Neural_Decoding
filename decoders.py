@@ -645,7 +645,7 @@ class XGBoostDecoder(object):
         #Set parameters for XGBoost
         param = {'objective': "reg:linear", #for linear output
             'eval_metric': "logloss", #loglikelihood loss
-            'max_depth': max_depth, #this is the only parameter we have set, it's one of the way or regularizing
+            'max_depth': self.max_depth, #this is the only parameter we have set, it's one of the way or regularizing
             'seed': 2925, #for reproducibility
             'silent': 1}
         param['nthread'] = -1 #with -1 it will use all available threads
@@ -653,7 +653,7 @@ class XGBoostDecoder(object):
         models=[] #Initialize list of models (there will be a separate model for each output)
         for y_idx in range(num_outputs): #Loop through outputs
             dtrain = xgb.DMatrix(X_train, label=y_train[:,y_idx]) #Put in correct format for XGB
-            bst = xgb.train(param, dtrain, num_round) #Train model
+            bst = xgb.train(param, dtrain, self.num_round) #Train model
             models.append(bst) #Add fit model to list of models
 
         self.model=models
