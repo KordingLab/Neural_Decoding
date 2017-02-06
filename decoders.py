@@ -675,9 +675,9 @@ class XGBoostDecoder(object):
             The predicted outputs
         """
 
-        dtest = xgb.DMatrix(X_test) #Put in XGB format
-        num_outputs=len(models) #Number of outputs
-        y_test_predicted=np.empty([X_test.shape[0],num_outputs]) #Initialize matrix of predicted outputs
+        dtest = xgb.DMatrix(X_flat_test) #Put in XGB format
+        num_outputs=len(self.model) #Number of outputs
+        y_test_predicted=np.empty([X_flat_test.shape[0],num_outputs]) #Initialize matrix of predicted outputs
         for y_idx in range(num_outputs): #Loop through outputs
             bst=self.model[y_idx] #Get fit model for this output
             y_test_predicted[:,y_idx] = bst.predict(dtest) #Make prediction
