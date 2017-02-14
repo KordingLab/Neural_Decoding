@@ -12,8 +12,8 @@ This package accompanies a manuscript (soon to be released) that compares the pe
 We have included jupyter notebooks that provide detailed examples of how to use the decoders. The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders.
 
 Here we provide a basic example where we are using a LSTM decoder. <br>
-For this example we assume we have already loaded matrices "neural_data" and "y"...
-In the example notebooks, we provide code for doing this preprocessing.
+For this example we assume we have already loaded matrices "neural_data" and "y"... <br>
+We have also provided a jupyter notebook, "Neural_preprocessing" with an example of how to get Matlab data into this format.
 <br>
 
 First we will import the necessary functions
@@ -65,11 +65,23 @@ Options for spike history/lags
  - 
  - It has parameter *degree* (the degree of the polynomial used for the nonlinearity)
 - **KalmanFilterDecoder**
+ - 
+ - It has no input parameters
 - **XGBoostDecoder**
+ - 
+ - It has parameters *max_depth* (the maximum depth of the trees) and *num_round* (the number of trees that are fit)
 - **DenseNNDecoder**
+ - 
+ - It has parameters *units* (the number of units in each layer), *dropout* (the proportion of units that get dropped out), *num_epochs* (the number of epochs used for training), and *verbose* (whether to display progress of the fit after each epoch)
 - **SimpleRNNDecoder**
+ - 
+ - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 - **GRUDecoder**
+ - 
+ - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 - **LSTMDecoder**
+ - 
+ - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 
 When designing the XGBoost and neural network decoders, there were many additional parameters that could have been utilized (e.g. regularization). To simplify ease of use, we only included parameters that were sufficient for producing good fits.
 
