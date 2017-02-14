@@ -2,7 +2,14 @@
 
 import numpy as np
 from numpy.linalg import inv as inv #Used in kalman filter
-from sklearn import linear_model #For linear regression (wiener filter)
+
+#Import scikit-learn (sklearn) if it is installed
+try:
+    from sklearn import linear_model #For Wiener Filter and Wiener Cascade
+except ImportError:
+    print("\nWARNING: scikit-learn is not installed. You will be unable to use the Wiener Filter or Wiener Cascade Decoders")
+    pass
+
 #Import XGBoost if the package is installed
 try:
     import xgboost as xgb #For xgboost
