@@ -13,7 +13,9 @@ We have included jupyter notebooks that provide detailed examples of how to use 
 
 Here we provide a basic example:
 
-
+```python
+import numpy as np
+```
 
 ## What's Included
 There are 3 files with functions. An overview of the functions are below. More details can be found in the comments within the files.
@@ -32,7 +34,7 @@ When designing the XGBoost and neural network decoders, there were many addition
 
 **metrics.py:** The file has functions for metrics to evaluate model fit. It currently has functions to calculate:
  - $ R^2 $
- - $ /Rho $
+ - ![equation](https://latex.codecogs.com/gif.latex?%24%5Crho%24)
  
 **preprocessing_funcs.py** The file contains functions for preprocessing data that may be useful for putting the neural activity and outputs in the correct format for our decoding functions
  - get_spike_history:
