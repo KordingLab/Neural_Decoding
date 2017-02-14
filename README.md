@@ -33,12 +33,14 @@ There are 3 files with functions. An overview of the functions are below. More d
 When designing the XGBoost and neural network decoders, there were many additional parameters that could have been utilized (e.g. regularization). To simplify ease of use, we only included parameters that were sufficient for producing good fits.
 
 **metrics.py:** The file has functions for metrics to evaluate model fit. It currently has functions to calculate:
- - $ R^2 $
- - ![equation](https://latex.codecogs.com/gif.latex?%24%5Crho%24)
+ - ![equation](https://latex.codecogs.com/gif.latex?%24R%5E2%3D1-%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%7B%7D%5Cfrac%7B%5Cleft%28y_i-%5Cwidehat%7By_i%7D%20%5Cright%20%29%5E2%7D%7B%5Cleft%28y_i-%5Cbar%7By_i%7D%20%5Cright%20%29%5E2%7D)
+ - ![equation](https://latex.codecogs.com/gif.latex?%24%5Crho%24) : The pearson correlation coefficient
  
 **preprocessing_funcs.py** The file contains functions for preprocessing data that may be useful for putting the neural activity and outputs in the correct format for our decoding functions
- - get_spike_history:
-
+ - bin_spikes: converts spike times to the number of spikes within time bins
+ - bin_output: converts a continuous stream of outputs to the average output within time bins
+ - get_spikes_with_history: using binned spikes as input, this function creates a covariate matrix of neural data that incorporates spike history
+ 
 ## Dependencies
 In order to run all the decoders based on neural networks, you need to install [Keras] (https://keras.io/#installation) <br>
 In order to run the XGBoost Decoder, you need to install [XGBoost] (https://pypi.python.org/pypi/xgboost/) <br>
