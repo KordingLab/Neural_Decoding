@@ -12,8 +12,11 @@ This package accompanies a manuscript (soon to be released) that compares the pe
 We have included jupyter notebooks that provide detailed examples of how to use the decoders. The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders.
 
 Here we provide a basic example where we are using a LSTM decoder. <br>
-For this example we assume we have already loaded matrices "neural_data" and "y"... <br>
-We have also provided a jupyter notebook, "Neural_preprocessing" with an example of how to get Matlab data into this format.
+For this example we assume we have already loaded matrices:
+ - "neural_data": a matrix of size "number of time bins" x "number of neurons," where each entry is the firing rate of a given neuron in a given time bin.
+ - "y": the output variable that you are decoding (e.g. velocity), and is a matrix of size "number of time bins" x "number of features you are decoding."  <br>
+
+We have provided a jupyter notebook, "Example_format_data" with an example of how to get Matlab data into this format.
 <br>
 
 First we will import the necessary functions
@@ -53,34 +56,35 @@ There are 3 files with functions. An overview of the functions are below. More d
 ### decoders.py:
 This file provides all of the decoders. Each decoder is a class with functions "fit" and "predict".
 
-Input format...
-Output
-
 Options for spike history/lags
 
+Input format...X...X_flat...
+Output
+
+
 - **WienerFilterDecoder** 
- - The Wiener Filter...
+ - The Wiener Filter is simply multiple linear regression using X_flat as an input.
  - It has no input parameters
 - **WienerCascadeDecoder**
- - 
+ - The Wiener Cascade (also known as a linear nonlinear model) fits a linear regression (the Wiener filter) followed by fitting a static nonlearity.
  - It has parameter *degree* (the degree of the polynomial used for the nonlinearity)
 - **KalmanFilterDecoder**
- - 
+ - We used a Kalman filter as implemented in [Wu et al. 2003](https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf). In the Kalman filter, the measurement was the neural spike trains, and the hidden state was the kinematics.
  - It has no input parameters
 - **XGBoostDecoder**
- - 
+ - We used the Extreme Gradient Boosting [XGBoost] (http://xgboost.readthedocs.io/en/latest/model.html) algorithm to relate X_flat to the outputs. XGBoost is based on the idea of boosted trees.
  - It has parameters *max_depth* (the maximum depth of the trees) and *num_round* (the number of trees that are fit)
 - **DenseNNDecoder**
- - 
+ - Using the Keras library, we created a dense feedforward neural network that uses X_flat to predict the outputs. It can have any number of hidden layers.
  - It has parameters *units* (the number of units in each layer), *dropout* (the proportion of units that get dropped out), *num_epochs* (the number of epochs used for training), and *verbose* (whether to display progress of the fit after each epoch)
 - **SimpleRNNDecoder**
- - 
+ - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a standard recurrent neural network (RNN). The units from this recurrent layer were fully connected to the output layer. 
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 - **GRUDecoder**
- - 
+ - All methods were the same as for the SimpleRNNDecoder, except  Gated Recurrent Units (GRUs; a more sophisticated RNN) were used rather than a traditional RNN. 
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 - **LSTMDecoder**
- - 
+ - All methods were the same as for the SimpleRNNDecoder, except  Long Short Term Memory networks (LSTMs; a more sophisticated RNN) were used rather than a traditional RNN. 
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 
 When designing the XGBoost and neural network decoders, there were many additional parameters that could have been utilized (e.g. regularization). To simplify ease of use, we only included parameters that were sufficient for producing good fits.
