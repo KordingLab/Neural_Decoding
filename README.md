@@ -13,8 +13,8 @@ We have included jupyter notebooks that provide detailed examples of how to use 
 
 Here we provide a basic example where we are using a LSTM decoder. <br>
 For this example we assume we have already loaded matrices:
- - "neural_data": a matrix of size "number of time bins" x "number of neurons," where each entry is the firing rate of a given neuron in a given time bin.
- - "y": the output variable that you are decoding (e.g. velocity), and is a matrix of size "number of time bins" x "number of features you are decoding."  <br>
+ - "neural_data": a matrix of size "total number of time bins" x "number of neurons," where each entry is the firing rate of a given neuron in a given time bin.
+ - "y": the output variable that you are decoding (e.g. velocity), and is a matrix of size "total number of time bins" x "number of features you are decoding."  <br>
 
 We have provided a jupyter notebook, "Example_format_data" with an example of how to get Matlab data into this format.
 <br>
@@ -56,12 +56,14 @@ There are 3 files with functions. An overview of the functions are below. More d
 ### decoders.py:
 This file provides all of the decoders. Each decoder is a class with functions "fit" and "predict".
 
-Options for spike history/lags
+First, we will describe the format of data that is necessary for the decoders
+- For all the decoders, you will need to decide the time period of spikes (relative to the output) that you are using for decoding.
+- For all the decoders other than the Kalman filter, you can set "bins_before" (the number of bins of spikes preceding the output), "bins_current" (whether to use the bin of spikes concurrent with the output), and "bins_after" (the number of bins of spikes after the output). Let "surrounding_bins" = bins_before+bins_current+bins_after. This allows us to get a 3d covariate matrix "X" that has size "total number of time bins" x "surrounding_bins" x "number of neurons." We use this input format for the recurrent neural networks (SimpleRNN, GRU, LSTM). We can also flatten the matrix, so that there is a single feature for every time bin, to get "X_flat" which is a 2d matrix of size "total number of time bins" x "surrounding_bins x number of neurons." This input format is used for the Wiener Filter, Wiener Cascade, XGBoost, and Dense Neural Net.
+- For the Kalman filter, you can set the "lag" - what time bin of the neural data (relative to the output) is used to predict the output. The input format for the Kalman filter is simply the 2d matrix of size "total number of time bins" x "number of neurons."
+- The output, "y" is a 2d matrix of size "total number of time bins" x "number of output features."
 
-Input format...X...X_flat...
-Output
-
-
+<br>
+Here are all the decoders within "decoders.py":
 - **WienerFilterDecoder** 
  - The Wiener Filter is simply multiple linear regression using X_flat as an input.
  - It has no input parameters
