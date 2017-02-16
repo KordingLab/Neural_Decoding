@@ -1,4 +1,4 @@
-# Decoding: 
+# Neural_Decoding: 
 
 ### A python package that includes many methods for decoding neural activity
 
@@ -7,6 +7,13 @@ The package contains a mixture of classic decoding methods (Wiener Filter, Wiene
 The decoders are currently designed to predict continuously valued output. In the future, we will modify the functions to also allow classification.
 
 This package accompanies a manuscript (soon to be released) that compares the performance of these methods on several datasets.
+
+
+## Dependencies
+In order to run all the decoders based on neural networks, you need to install [Keras] (https://keras.io/#installation) <br>
+In order to run the XGBoost Decoder, you need to install [XGBoost] (https://pypi.python.org/pypi/xgboost/) <br>
+In order to run the Wiener Filter or Wiener Cascade, you will need [scikit-learn] (http://scikit-learn.org/stable/install.html).
+
 
 ## Getting started
 We have included jupyter notebooks that provide detailed examples of how to use the decoders. The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders.
@@ -101,8 +108,3 @@ The file contains functions for preprocessing data that may be useful for puttin
  - **bin_spikes**: converts spike times to the number of spikes within time bins
  - **bin_output**: converts a continuous stream of outputs to the average output within time bins
  - **get_spikes_with_history**: using binned spikes as input, this function creates a covariate matrix of neural data that incorporates spike history
- 
-## Dependencies
-In order to run all the decoders based on neural networks, you need to install [Keras] (https://keras.io/#installation) <br>
-In order to run the XGBoost Decoder, you need to install [XGBoost] (https://pypi.python.org/pypi/xgboost/) <br>
-In order to run the Wiener Filter or Wiener Cascade, you will need [scikit-learn] (http://scikit-learn.org/stable/install.html).
