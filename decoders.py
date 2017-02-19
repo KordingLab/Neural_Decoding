@@ -169,6 +169,9 @@ class KalmanFilterDecoder(object):
     Class for the Kalman Filter Decoder
 
     There are no parameters to set.
+
+    This implementation of the Kalman filter for neural decoding is that of Wu et al 2003 (https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf)
+    This has previously been coded in Matlab by Dan Morris (http://dmorris.net/projects/neural_decoding.html#code)
     """
 
     def __init__(self):
@@ -190,7 +193,7 @@ class KalmanFilterDecoder(object):
             This is the outputs that are being predicted
         """
 
-        #First we'll rename and reformat the variables to be in a more standard kalman filter nomenclature (specifically that from Wu et al):
+        #First we'll rename and reformat the variables to be in a more standard kalman filter nomenclature (specifically that from Wu et al, 2003):
         #xs are the state (here, the variable we're predicting, i.e. y_train)
         #zs are the observed variable (neural data here, i.e. X_kf_train)
         X=np.matrix(y_train.T)
