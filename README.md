@@ -35,7 +35,7 @@ Next, we will define the time period we are using spikes from (relative to the o
 ```python
 bins_before=13 #How many bins of neural data prior to the output are used for decoding
 bins_current=1 #Whether to use concurrent time bin of neural data
-bins_after=0 #How many bins of neural data after (and including) the output are used for decoding
+bins_after=0 #How many bins of neural data after the output are used for decoding
 ```
 
 Next, we will compute the covariate matrix that includes the spike history from previous bins
