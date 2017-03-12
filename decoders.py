@@ -335,21 +335,21 @@ class DenseNNDecoder(object):
         model=Sequential() #Declare model
         #Add first hidden layer
         model.add(Dense(self.units[0],input_dim=X_flat_train.shape[1])) #Add dense layer
-        model.add(Activation('tanh')) #Add nonlinear (tanh) activation
+        model.add(Activation('relu')) #Add nonlinear (tanh) activation
         # if self.dropout!=0:
         if self.dropout!=0: model.add(Dropout(self.dropout))  #Dropout some units if proportion of dropout != 0
 
         #Add any additional hidden layers (beyond the 1st)
         for layer in range(self.num_layers-1): #Loop through additional layers
             model.add(Dense(self.units[layer+1])) #Add dense layer
-            model.add(Activation('tanh')) #Add nonlinear (tanh) activation
+            model.add(Activation('relu')) #Add nonlinear (tanh) activation
             if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units if proportion of dropout != 0
 
         #Add dense connections to all outputs
         model.add(Dense(y_train.shape[1])) #Add final dense layer (connected to outputs)
 
         #Fit model (and set fitting parameters)
-        model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
+        model.compile(loss='mse',optimizer='adam',metrics=['accuracy']) #Set loss function and optimizer
         model.fit(X_flat_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
         self.model=model
 
@@ -422,7 +422,7 @@ class SimpleRNNDecoder(object):
 
         model=Sequential() #Declare model
         #Add recurrent layer
-        model.add(SimpleRNN(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        model.add(SimpleRNN(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout,activation='relu')) #Within recurrent layer, include dropout
         if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
 
         #Add dense connections to output layer
