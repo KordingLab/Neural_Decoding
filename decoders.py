@@ -6,6 +6,7 @@ from numpy.linalg import inv as inv #Used in kalman filter
 #Import scikit-learn (sklearn) if it is installed
 try:
     from sklearn import linear_model #For Wiener Filter and Wiener Cascade
+    from sklearn.svm import SVR #For support vector regression (SVR)
 except ImportError:
     print("\nWARNING: scikit-learn is not installed. You will be unable to use the Wiener Filter or Wiener Cascade Decoders")
     pass
@@ -691,4 +692,67 @@ class XGBoostDecoder(object):
         for y_idx in range(num_outputs): #Loop through outputs
             bst=self.model[y_idx] #Get fit model for this output
             y_test_predicted[:,y_idx] = bst.predict(dtest) #Make prediction
+        return y_test_predicted
+
+
+##################### SUPPORT VECTOR REGRESSION ##########################
+
+class SVRDecoder(object):
+
+    """
+    Class for the Support Vector Regression (SVR) Decoder
+
+    The only parameter is the maximum number of iterations (to save time)
+    """
+
+    def __init__(self,max_iter=10000):
+        self.max_iter=max_iter
+        return
+
+
+    def fit(self,X_flat_train,y_train):
+
+        """
+        Train SVR Decoder
+
+        Parameters
+        ----------
+        X_flat_train: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+        num_outputs=y_train.shape[1] #Number of outputs
+        models=[] #Initialize list of models (there will be a separate model for each output)
+        for y_idx in range(num_outputs): #Loop through outputs
+            model=SVR(max_iter=self.max_iter) #Initialize SVR model
+            model.fit(X_flat_train, y_train[:,y_idx]) #Train the model
+            models.append(model) #Add fit model to list of models
+        self.model=models
+
+
+    def predict(self,X_flat_test):
+
+        """
+        Predict outcomes using trained Wiener Cascade Decoder
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        num_outputs=len(self.model) #Number of outputs
+        y_test_predicted=np.empty([X_flat_test.shape[0],num_outputs]) #Initialize matrix of predicted outputs
+        for y_idx in range(num_outputs): #Loop through outputs
+            model=self.model[y_idx] #Get fit model for that output
+            y_test_predicted[:,y_idx]=model.predict(X_flat_test) #Make predictions
         return y_test_predicted
