@@ -69,7 +69,6 @@ First, we will describe the format of data that is necessary for the decoders
 - For the Kalman filter, you can set the "lag" - what time bin of the neural data (relative to the output) is used to predict the output. The input format for the Kalman filter is simply the 2d matrix of size "total number of time bins" x "number of neurons," where each entry is the firing rate of a given neuron in a given time bin.
 - The output, "y" is a 2d matrix of size "total number of time bins" x "number of output features."
 
-<br>
 Here are all the decoders within "decoders.py":
 - **WienerFilterDecoder** 
  - The Wiener Filter is simply multiple linear regression using X_flat as an input.
