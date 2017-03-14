@@ -80,6 +80,10 @@ Here are all the decoders within "decoders.py":
 - **KalmanFilterDecoder**
  - We used a Kalman filter as implemented in [Wu et al. 2003](https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf). In the Kalman filter, the measurement was the neural spike trains, and the hidden state was the kinematics.
  - It has no input parameters
+- **SVRDecoder** 
+ - This decoder uses support vector regression using X_flat as an input.
+ - It has parameters *C* (the penalty of the error term) and *max_iter* (the maximum number of iterations).
+ - It works best when the output ("y") has been normalized
 - **XGBoostDecoder**
  - We used the Extreme Gradient Boosting [XGBoost] (http://xgboost.readthedocs.io/en/latest/model.html) algorithm to relate X_flat to the outputs. XGBoost is based on the idea of boosted trees.
  - It has parameters *max_depth* (the maximum depth of the trees) and *num_round* (the number of trees that are fit)
