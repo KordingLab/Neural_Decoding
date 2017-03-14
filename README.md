@@ -2,7 +2,7 @@
 
 ### A python package that includes many methods for decoding neural activity
 
-The package contains a mixture of classic decoding methods (Wiener Filter, Wiener Cascade, Kalman Filter) and modern machine learning methods (XGBoost, Dense Neural Network, Recurrent Neural Net, GRU, LSTM).
+The package contains a mixture of classic decoding methods (Wiener Filter, Wiener Cascade, Kalman Filter, Support Vector Regression) and modern machine learning methods (XGBoost, Dense Neural Network, Recurrent Neural Net, GRU, LSTM).
 
 The decoders are currently designed to predict continuously valued output. In the future, we will modify the functions to also allow classification.
 
@@ -12,7 +12,7 @@ This package accompanies a manuscript (soon to be released) that compares the pe
 ## Dependencies
 In order to run all the decoders based on neural networks, you need to install [Keras] (https://keras.io/#installation) <br>
 In order to run the XGBoost Decoder, you need to install [XGBoost] (https://pypi.python.org/pypi/xgboost/) <br>
-In order to run the Wiener Filter or Wiener Cascade, you will need [scikit-learn] (http://scikit-learn.org/stable/install.html).
+In order to run the Wiener Filter, Wiener Cascade, or Support Vector Regression you will need [scikit-learn] (http://scikit-learn.org/stable/install.html).
 
 
 ## Getting started
@@ -65,38 +65,38 @@ This file provides all of the decoders. Each decoder is a class with functions "
 
 First, we will describe the format of data that is necessary for the decoders
 - For all the decoders, you will need to decide the time period of spikes (relative to the output) that you are using for decoding.
-- For all the decoders other than the Kalman filter, you can set "bins_before" (the number of bins of spikes preceding the output), "bins_current" (whether to use the bin of spikes concurrent with the output), and "bins_after" (the number of bins of spikes after the output). Let "surrounding_bins" = bins_before+bins_current+bins_after. This allows us to get a 3d covariate matrix "X" that has size "total number of time bins" x "surrounding_bins" x "number of neurons." We use this input format for the recurrent neural networks (SimpleRNN, GRU, LSTM). We can also flatten the matrix, so that there is a vector of features for every time bin, to get "X_flat" which is a 2d matrix of size "total number of time bins" x "surrounding_bins x number of neurons." This input format is used for the Wiener Filter, Wiener Cascade, XGBoost, and Dense Neural Net.
+- For all the decoders other than the Kalman filter, you can set "bins_before" (the number of bins of spikes preceding the output), "bins_current" (whether to use the bin of spikes concurrent with the output), and "bins_after" (the number of bins of spikes after the output). Let "surrounding_bins" = bins_before+bins_current+bins_after. This allows us to get a 3d covariate matrix "X" that has size "total number of time bins" x "surrounding_bins" x "number of neurons." We use this input format for the recurrent neural networks (SimpleRNN, GRU, LSTM). We can also flatten the matrix, so that there is a vector of features for every time bin, to get "X_flat" which is a 2d matrix of size "total number of time bins" x "surrounding_bins x number of neurons." This input format is used for the Wiener Filter, Wiener Cascade, Support Vector Regression, XGBoost, and Dense Neural Net.
 - For the Kalman filter, you can set the "lag" - what time bin of the neural data (relative to the output) is used to predict the output. The input format for the Kalman filter is simply the 2d matrix of size "total number of time bins" x "number of neurons," where each entry is the firing rate of a given neuron in a given time bin.
 - The output, "y" is a 2d matrix of size "total number of time bins" x "number of output features."
 
-Here are all the decoders within "decoders.py":
-- **WienerFilterDecoder** 
+<br> Here are all the decoders within "decoders.py":
+1. **WienerFilterDecoder** 
  - The Wiener Filter is simply multiple linear regression using X_flat as an input.
  - It has no input parameters
-- **WienerCascadeDecoder**
+2. **WienerCascadeDecoder**
  - The Wiener Cascade (also known as a linear nonlinear model) fits a linear regression (the Wiener filter) followed by fitting a static nonlearity.
  - It has parameter *degree* (the degree of the polynomial used for the nonlinearity)
-- **KalmanFilterDecoder**
+3. **KalmanFilterDecoder**
  - We used a Kalman filter as implemented in [Wu et al. 2003](https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf). In the Kalman filter, the measurement was the neural spike trains, and the hidden state was the kinematics.
  - It has no input parameters
-- **SVRDecoder** 
+4. **SVRDecoder** 
  - This decoder uses support vector regression using X_flat as an input.
  - It has parameters *C* (the penalty of the error term) and *max_iter* (the maximum number of iterations).
  - It works best when the output ("y") has been normalized
-- **XGBoostDecoder**
+5. **XGBoostDecoder**
  - We used the Extreme Gradient Boosting [XGBoost] (http://xgboost.readthedocs.io/en/latest/model.html) algorithm to relate X_flat to the outputs. XGBoost is based on the idea of boosted trees.
  - It has parameters *max_depth* (the maximum depth of the trees) and *num_round* (the number of trees that are fit)
-- **DenseNNDecoder**
+6. **DenseNNDecoder**
  - Using the Keras library, we created a dense feedforward neural network that uses X_flat to predict the outputs. It can have any number of hidden layers.
  - It has parameters *units* (the number of units in each layer), *dropout* (the proportion of units that get dropped out), *num_epochs* (the number of epochs used for training), and *verbose* (whether to display progress of the fit after each epoch)
-- **SimpleRNNDecoder**
- - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a standard recurrent neural network (RNN). The units from this recurrent layer were fully connected to the output layer. 
+7. **SimpleRNNDecoder**
+ - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a standard recurrent neural network (RNN) with a relu activation. The units from this recurrent layer were fully connected to the output layer. 
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
-- **GRUDecoder**
- - All methods were the same as for the SimpleRNNDecoder, except  Gated Recurrent Units (GRUs; a more sophisticated RNN) were used rather than a traditional RNN. 
+8. **GRUDecoder**
+ - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a network of gated recurrent units (GRUs; a more sophisticated RNN). The units from this recurrent layer were fully connected to the output layer. 
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
-- **LSTMDecoder**
- - All methods were the same as for the SimpleRNNDecoder, except  Long Short Term Memory networks (LSTMs; a more sophisticated RNN) were used rather than a traditional RNN. 
+9. **LSTMDecoder**
+ - All methods were the same as for the GRUDecoder, except  Long Short Term Memory networks (LSTMs; another more sophisticated RNN) were used rather than GRUs. 
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 
 When designing the XGBoost and neural network decoders, there were many additional parameters that could have been utilized (e.g. regularization). To simplify ease of use, we only included parameters that were sufficient for producing good fits.
