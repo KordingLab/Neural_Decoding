@@ -42,6 +42,8 @@ class WienerFilterDecoder(object):
     Class for the Wiener Filter Decoder
 
     There are no parameters to set.
+
+    This simply leverages the scikit-learn linear regression.
     """
 
     def __init__(self):
@@ -701,12 +703,22 @@ class SVRDecoder(object):
 
     """
     Class for the Support Vector Regression (SVR) Decoder
+    This simply leverages the scikit-learn SVR
 
-    The only parameter is the maximum number of iterations (to save time)
+    Parameters
+    ----------
+    C: float, default=3.0
+        Penalty parameter of the error term
+
+    max_iter: integer, default=-1
+        the maximum number of iteraations to run (to save time)
+        max_iter=-1 means no limit
+        Typically in the 1000s takes a short amount of time on a laptop
     """
 
-    def __init__(self,max_iter=10000):
+    def __init__(self,max_iter=-1,C=3.0):
         self.max_iter=max_iter
+        self.C=C
         return
 
 
@@ -728,7 +740,7 @@ class SVRDecoder(object):
         num_outputs=y_train.shape[1] #Number of outputs
         models=[] #Initialize list of models (there will be a separate model for each output)
         for y_idx in range(num_outputs): #Loop through outputs
-            model=SVR(max_iter=self.max_iter) #Initialize SVR model
+            model=SVR(C=self.C, max_iter=self.max_iter) #Initialize SVR model
             model.fit(X_flat_train, y_train[:,y_idx]) #Train the model
             models.append(model) #Add fit model to list of models
         self.model=models
