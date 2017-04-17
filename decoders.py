@@ -632,10 +632,10 @@ class XGBoostDecoder(object):
         the number of trees that are fit
     """
 
-    def __init__(self,max_depth=3,num_round=300):
+    def __init__(self,max_depth=3,num_round=300,eta=0.3):
         self.max_depth=max_depth
         self.num_round=num_round
-
+        self.eta=eta
 
     def fit(self,X_flat_train,y_train):
 
@@ -659,6 +659,7 @@ class XGBoostDecoder(object):
         param = {'objective': "reg:linear", #for linear output
             'eval_metric': "logloss", #loglikelihood loss
             'max_depth': self.max_depth, #this is the only parameter we have set, it's one of the way or regularizing
+            'eta': self.eta,
             'seed': 2925, #for reproducibility
             'silent': 1}
         param['nthread'] = -1 #with -1 it will use all available threads
