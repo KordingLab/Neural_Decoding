@@ -85,7 +85,7 @@ First, we will describe the format of data that is necessary for the decoders
  - It works best when the output ("y") has been normalized
 5. **XGBoostDecoder**
  - We used the Extreme Gradient Boosting [XGBoost] (http://xgboost.readthedocs.io/en/latest/model.html) algorithm to relate X_flat to the outputs. XGBoost is based on the idea of boosted trees.
- - It has parameters *max_depth* (the maximum depth of the trees) and *num_round* (the number of trees that are fit)
+ - It has parameters *max_depth* (the maximum depth of the trees), *num_round* (the number of trees that are fit), and *eta* (the learning rate).
 6. **DenseNNDecoder**
  - Using the Keras library, we created a dense feedforward neural network that uses X_flat to predict the outputs. It can have any number of hidden layers.
  - It has parameters *units* (the number of units in each layer), *dropout* (the proportion of units that get dropped out), *num_epochs* (the number of epochs used for training), and *verbose* (whether to display progress of the fit after each epoch)
