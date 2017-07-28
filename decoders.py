@@ -171,14 +171,19 @@ class KalmanFilterDecoder(object):
     """
     Class for the Kalman Filter Decoder
 
-    There are no parameters to set.
+    Parameters
+    -----------
+    C - float, optional, default 1
+    This parameter scales the noise matrix associated with the transition in kinematic states.
+    It effectively allows changing the weight of the new neural evidence in the current update.
 
-    This implementation of the Kalman filter for neural decoding is that of Wu et al 2003 (https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf)
-    This has previously been coded in Matlab by Dan Morris (http://dmorris.net/projects/neural_decoding.html#code)
+    Our implementation of the Kalman filter for neural decoding is based on that of Wu et al 2003 (https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf)
+    with the exception of the addition of the parameter C.
+    The original implementation has previously been coded in Matlab by Dan Morris (http://dmorris.net/projects/neural_decoding.html#code)
     """
 
-    def __init__(self):
-        return
+    def __init__(self,C=1):
+        self.C=C
 
 
     def fit(self,X_kf_train,y_train):
@@ -210,7 +215,7 @@ class KalmanFilterDecoder(object):
         X2 = X[:,1:]
         X1 = X[:,0:nt-1]
         A=X2*X1.T*inv(X1*X1.T) #Transition matrix
-        W=(X2-A*X1)*(X2-A*X1).T/(nt-1) #Covariance of transition matrix. Note we divide by nt-1 since only nt-1 points were used in the computation (that's the length of X1 and X2)
+        W=(X2-A*X1)*(X2-A*X1).T/(nt-1)/self.C #Covariance of transition matrix. Note we divide by nt-1 since only nt-1 points were used in the computation (that's the length of X1 and X2). We also introduce the extra parameter C here.
 
         #Calculate the measurement matrix (from x_t to z_t) using least-squares, and compute its covariance
         #In our case, this is the transformation from kinematics to spikes
@@ -630,12 +635,20 @@ class XGBoostDecoder(object):
 
     num_round: integer, optional, default=300
         the number of trees that are fit
+
+    eta: float, optional, default=0.3
+        the learning rate
+
+    gpu: integer, optional, default=-1
+        if the gpu version of xgboost is installed, this can be used to select which gpu to use
+        for negative values (default), the gpu is not used
     """
 
-    def __init__(self,max_depth=3,num_round=300,eta=0.3):
+    def __init__(self,max_depth=3,num_round=300,eta=0.3,gpu=-1):
         self.max_depth=max_depth
         self.num_round=num_round
         self.eta=eta
+        self.gpu=gpu
 
     def fit(self,X_flat_train,y_train):
 
@@ -662,7 +675,11 @@ class XGBoostDecoder(object):
             'eta': self.eta,
             'seed': 2925, #for reproducibility
             'silent': 1}
-        param['nthread'] = -1 #with -1 it will use all available threads
+        if self.gpu<0:
+            param['nthread'] = -1 #with -1 it will use all available threads
+        else:
+            param['gpu_id']=self.gpu
+            param['updater']='grow_gpu'
 
         models=[] #Initialize list of models (there will be a separate model for each output)
         for y_idx in range(num_outputs): #Loop through outputs
