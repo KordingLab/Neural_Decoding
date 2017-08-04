@@ -6,7 +6,7 @@ The package contains a mixture of classic decoding methods (Wiener Filter, Wiene
 
 The decoders are currently designed to predict continuously valued output. In the future, we will modify the functions to also allow classification.
 
-This package accompanies a manuscript (soon to be released) that compares the performance of these methods on several datasets.
+This package accompanies a [manuscript](https://arxiv.org/abs/1708.00909) that compares the performance of these methods on several datasets. We would appreciate if you cite that manuscript if you use our code for your research.
 
 
 ## Dependencies
