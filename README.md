@@ -6,13 +6,13 @@ The package contains a mixture of classic decoding methods (Wiener Filter, Wiene
 
 The decoders are currently designed to predict continuously valued output. In the future, we will modify the functions to also allow classification.
 
-This package accompanies a manuscript (soon to be released) that compares the performance of these methods on several datasets.
+This package accompanies a [manuscript](https://arxiv.org/abs/1708.00909) that compares the performance of these methods on several datasets. We would appreciate if you cite that manuscript if you use our code for your research.
 
 
 ## Dependencies
-In order to run all the decoders based on neural networks, you need to install [Keras] (https://keras.io/#installation) <br>
-In order to run the XGBoost Decoder, you need to install [XGBoost] (https://pypi.python.org/pypi/xgboost/) <br>
-In order to run the Wiener Filter, Wiener Cascade, or Support Vector Regression you will need [scikit-learn] (http://scikit-learn.org/stable/install.html).
+In order to run all the decoders based on neural networks, you need to install [Keras](https://keras.io/#installation) <br>
+In order to run the XGBoost Decoder, you need to install [XGBoost](https://pypi.python.org/pypi/xgboost/) <br>
+In order to run the Wiener Filter, Wiener Cascade, or Support Vector Regression you will need [scikit-learn](http://scikit-learn.org/stable/install.html).
 
 
 ## Getting started
@@ -77,15 +77,15 @@ First, we will describe the format of data that is necessary for the decoders
  - The Wiener Cascade (also known as a linear nonlinear model) fits a linear regression (the Wiener filter) followed by fitting a static nonlearity.
  - It has parameter *degree* (the degree of the polynomial used for the nonlinearity)
 3. **KalmanFilterDecoder**
- - We used a Kalman filter as implemented in [Wu et al. 2003](https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf). In the Kalman filter, the measurement was the neural spike trains, and the hidden state was the kinematics.
- - It has no input parameters
+ - We used a Kalman filter similar to that implemented in [Wu et al. 2003](https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf). In the Kalman filter, the measurement was the neural spike trains, and the hidden state was the kinematics.
+ - We have one parameter *C* (which is not in the previous implementation). This parameter scales the noise matrix associated with the transition in kinematic states. It effectively allows changing the weight of the new neural evidence in the current update. 
 4. **SVRDecoder** 
  - This decoder uses support vector regression using X_flat as an input.
  - It has parameters *C* (the penalty of the error term) and *max_iter* (the maximum number of iterations).
  - It works best when the output ("y") has been normalized
 5. **XGBoostDecoder**
- - We used the Extreme Gradient Boosting [XGBoost] (http://xgboost.readthedocs.io/en/latest/model.html) algorithm to relate X_flat to the outputs. XGBoost is based on the idea of boosted trees.
- - It has parameters *max_depth* (the maximum depth of the trees) and *num_round* (the number of trees that are fit)
+ - We used the Extreme Gradient Boosting [XGBoost](http://xgboost.readthedocs.io/en/latest/model.html) algorithm to relate X_flat to the outputs. XGBoost is based on the idea of boosted trees.
+ - It has parameters *max_depth* (the maximum depth of the trees), *num_round* (the number of trees that are fit), *eta* (the learning rate), and *gpu* (if you have the [gpu version](https://github.com/dmlc/xgboost/tree/master/plugin/updater_gpu) of XGBoost installed, you can select which gpu to use)
 6. **DenseNNDecoder**
  - Using the Keras library, we created a dense feedforward neural network that uses X_flat to predict the outputs. It can have any number of hidden layers.
  - It has parameters *units* (the number of units in each layer), *dropout* (the proportion of units that get dropped out), *num_epochs* (the number of epochs used for training), and *verbose* (whether to display progress of the fit after each epoch)
