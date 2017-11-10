@@ -6,8 +6,12 @@ The package contains a mixture of classic decoding methods (Wiener Filter, Wiene
 
 The decoders are currently designed to predict continuously valued output. In the future, we will modify the functions to also allow classification.
 
-This package accompanies a [manuscript](https://arxiv.org/abs/1708.00909) that compares the performance of these methods on several datasets. We would appreciate if you cite that manuscript if you use our code for your research.
+## Our manuscript
+This package accompanies a [manuscript](https://arxiv.org/abs/1708.00909) that compares the performance of these methods on several datasets. We would appreciate if you cite that manuscript if you use our code or data for your research.
 
+All 3 datasets (motor cortex, somatosensory cortex, and hippocampus) used in the paper can be downloaded [here](https://www.dropbox.com/sh/n4924ipcfjqc0t6/AACPWjxDKPEzQiXKUUFriFkJa?dl=0). They are in both matlab and python formats, and can be used in the example files described below.
+
+In the future, we will add all code used for the manuscript (cross-validation, hyperparameter optimization, etc).
 
 ## Dependencies
 In order to run all the decoders based on neural networks, you need to install [Keras](https://keras.io/#installation) <br>
@@ -16,7 +20,7 @@ In order to run the Wiener Filter, Wiener Cascade, or Support Vector Regression 
 
 
 ## Getting started
-We have included jupyter notebooks that provide detailed examples of how to use the decoders. The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders.
+We have included jupyter notebooks that provide detailed examples of how to use the decoders. The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders. These examples work well with the somatosensory and motor cortex datasets. There are minor differences in the hippocampus dataset, so we have included a folder, "Examples_hippocampus", with analogous example files.
 
 Here we provide a basic example where we are using a LSTM decoder. <br>
 For this example we assume we have already loaded matrices:
