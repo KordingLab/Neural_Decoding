@@ -11,8 +11,6 @@ This package accompanies a [manuscript](https://arxiv.org/abs/1708.00909) that c
 
 All 3 datasets (motor cortex, somatosensory cortex, and hippocampus) used in the paper can be downloaded [here](https://www.dropbox.com/sh/n4924ipcfjqc0t6/AACPWjxDKPEzQiXKUUFriFkJa?dl=0). They are in both matlab and python formats, and can be used in the example files described below.
 
-In the future, we will add all code used for the manuscript (cross-validation, hyperparameter optimization, etc).
-
 ## Dependencies
 In order to run all the decoders based on neural networks, you need to install [Keras](https://keras.io/#installation) <br>
 In order to run the XGBoost Decoder, you need to install [XGBoost](https://pypi.python.org/pypi/xgboost/) <br>
@@ -115,3 +113,18 @@ The file contains functions for preprocessing data that may be useful for puttin
  - **bin_spikes**: converts spike times to the number of spikes within time bins
  - **bin_output**: converts a continuous stream of outputs to the average output within time bins
  - **get_spikes_with_history**: using binned spikes as input, this function creates a covariate matrix of neural data that incorporates spike history
+
+## Paper code
+In the folder "Paper_code", we include code used for the manuscript. This includes hyperparameter optimization, cross-validation, etc, that is not currently in our example files. At the moment, we have released the code that uses the full dataset (for Figs 2 and 3). Code that tests the effect of limited data (for Figs 4 and 5) will be made available soon. The files are as follows:
+
+### ManyDecoders_FullData
+ - Runs all decoders (except the Kalman Filter and Ensemble method) on the full datasets
+ 
+### KF_FullData
+ - Runs the Kalman Filter on the full datasets
+ 
+### Ensemble_FullData
+ - Runs the Ensemble on the full datasets
+ 
+### Plot_Results_FullData
+ - Takes the results, and makes plots shown in Figs 2 and 3
