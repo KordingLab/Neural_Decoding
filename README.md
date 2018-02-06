@@ -14,11 +14,14 @@ All 3 datasets (motor cortex, somatosensory cortex, and hippocampus) used in the
 ## Dependencies
 In order to run all the decoders based on neural networks, you need to install [Keras](https://keras.io/#installation) <br>
 In order to run the XGBoost Decoder, you need to install [XGBoost](https://pypi.python.org/pypi/xgboost/) <br>
-In order to run the Wiener Filter, Wiener Cascade, or Support Vector Regression you will need [scikit-learn](http://scikit-learn.org/stable/install.html).
-
+In order to run the Wiener Filter, Wiener Cascade, or Support Vector Regression you will need [scikit-learn](http://scikit-learn.org/stable/install.html). <br>
+In order to do hyperparameter optimization, you need to install [BayesianOptimization](https://github.com/fmfn/BayesianOptimization)
 
 ## Getting started
-We have included jupyter notebooks that provide detailed examples of how to use the decoders. The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders. These examples work well with the somatosensory and motor cortex datasets. There are minor differences in the hippocampus dataset, so we have included a folder, "Examples_hippocampus", with analogous example files.
+We have included jupyter notebooks that provide detailed examples of how to use the decoders. 
+ - The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders. These examples work well with the somatosensory and motor cortex datasets. 
+ - There are minor differences in the hippocampus dataset, so we have included a folder, "Examples_hippocampus", with analogous example files. 
+ - We have also included a notebook, "Example_hyperparam_opt", that demonstrates how to do hyperparameter optimization for the decoders.
 
 Here we provide a basic example where we are using a LSTM decoder. <br>
 For this example we assume we have already loaded matrices:
