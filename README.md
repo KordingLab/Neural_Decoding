@@ -2,12 +2,14 @@
 
 ### A python package that includes many methods for decoding neural activity
 
-The package contains a mixture of classic decoding methods (Wiener Filter, Wiener Cascade, Kalman Filter, Support Vector Regression) and modern machine learning methods (XGBoost, Dense Neural Network, Recurrent Neural Net, GRU, LSTM).
+The package contains a mixture of classic decoding methods (Wiener Filter, Wiener Cascade, Kalman Filter, Naive Bayes, Support Vector Regression) and modern machine learning methods (XGBoost, Dense Neural Network, Recurrent Neural Net, GRU, LSTM).
 
 The decoders are currently designed to predict continuously valued output. In the future, we will modify the functions to also allow classification.
 
-## Our manuscript
+## Our manuscript and datasets
 This package accompanies a [manuscript](https://arxiv.org/abs/1708.00909) that compares the performance of these methods on several datasets. We would appreciate if you cite that manuscript if you use our code or data for your research.
+
+Code used for the paper is in the "Paper_code" folder. It is described further at the bottom of this read-me.
 
 All 3 datasets (motor cortex, somatosensory cortex, and hippocampus) used in the paper can be downloaded [here](https://www.dropbox.com/sh/n4924ipcfjqc0t6/AACPWjxDKPEzQiXKUUFriFkJa?dl=0). They are in both matlab and python formats, and can be used in the example files described below.
 
@@ -20,7 +22,7 @@ In order to do hyperparameter optimization, you need to install [BayesianOptimiz
 ## Getting started
 We have included jupyter notebooks that provide detailed examples of how to use the decoders. 
  - The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders. These examples work well with the somatosensory and motor cortex datasets. 
- - There are minor differences in the hippocampus dataset, so we have included a folder, "Examples_hippocampus", with analogous example files. 
+ - There are minor differences in the hippocampus dataset, so we have included a folder, "Examples_hippocampus", with analogous example files. This folder also includes an example file for using the Naive Bayes decoder (since it works much better on our hippocampus dataset).
  - We have also included a notebook, "Example_hyperparam_opt", that demonstrates how to do hyperparameter optimization for the decoders.
 
 Here we provide a basic example where we are using a LSTM decoder. <br>
@@ -84,23 +86,26 @@ First, we will describe the format of data that is necessary for the decoders
 3. **KalmanFilterDecoder**
  - We used a Kalman filter similar to that implemented in [Wu et al. 2003](https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf). In the Kalman filter, the measurement was the neural spike trains, and the hidden state was the kinematics.
  - We have one parameter *C* (which is not in the previous implementation). This parameter scales the noise matrix associated with the transition in kinematic states. It effectively allows changing the weight of the new neural evidence in the current update. 
-4. **SVRDecoder** 
+4. **NaiveBayesDecoder**
+ - We used a Naive Bayes decoder similar to that implemented in [Zhang et al. 1998](https://www.physiology.org/doi/abs/10.1152/jn.1998.79.2.1017) (see manuscript for details).
+ - It has parameters *encoding_model* (for either a linear or quadratic encoding model) and *res* (to set the resolution of predicted values)
+5. **SVRDecoder** 
  - This decoder uses support vector regression using X_flat as an input.
  - It has parameters *C* (the penalty of the error term) and *max_iter* (the maximum number of iterations).
  - It works best when the output ("y") has been normalized
-5. **XGBoostDecoder**
+6. **XGBoostDecoder**
  - We used the Extreme Gradient Boosting [XGBoost](http://xgboost.readthedocs.io/en/latest/model.html) algorithm to relate X_flat to the outputs. XGBoost is based on the idea of boosted trees.
  - It has parameters *max_depth* (the maximum depth of the trees), *num_round* (the number of trees that are fit), *eta* (the learning rate), and *gpu* (if you have the [gpu version](https://github.com/dmlc/xgboost/tree/master/plugin/updater_gpu) of XGBoost installed, you can select which gpu to use)
-6. **DenseNNDecoder**
+7. **DenseNNDecoder**
  - Using the Keras library, we created a dense feedforward neural network that uses X_flat to predict the outputs. It can have any number of hidden layers.
  - It has parameters *units* (the number of units in each layer), *dropout* (the proportion of units that get dropped out), *num_epochs* (the number of epochs used for training), and *verbose* (whether to display progress of the fit after each epoch)
-7. **SimpleRNNDecoder**
+8. **SimpleRNNDecoder**
  - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a standard recurrent neural network (RNN) with a relu activation. The units from this recurrent layer were fully connected to the output layer. 
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
-8. **GRUDecoder**
+9. **GRUDecoder**
  - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a network of gated recurrent units (GRUs; a more sophisticated RNN). The units from this recurrent layer were fully connected to the output layer. 
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
-9. **LSTMDecoder**
+10. **LSTMDecoder**
  - All methods were the same as for the GRUDecoder, except  Long Short Term Memory networks (LSTMs; another more sophisticated RNN) were used rather than GRUs. 
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 
@@ -118,16 +123,13 @@ The file contains functions for preprocessing data that may be useful for puttin
  - **get_spikes_with_history**: using binned spikes as input, this function creates a covariate matrix of neural data that incorporates spike history
 
 ## Paper code
-In the folder "Paper_code", we include code used for the manuscript. This includes hyperparameter optimization, cross-validation, etc, that is not currently in our example files. At the moment, we have released the code that uses the full dataset (for Figs 2 and 3). Code that tests the effect of limited data (for Figs 4 and 5) will be made available soon. The files are as follows:
-
-### ManyDecoders_FullData
- - Runs all decoders (except the Kalman Filter and Ensemble method) on the full datasets
- 
-### KF_FullData
- - Runs the Kalman Filter on the full datasets
- 
-### Ensemble_FullData
- - Runs the Ensemble on the full datasets
- 
-### Plot_Results_FullData
- - Takes the results, and makes plots shown in Figs 2 and 3
+In the folder "Paper_code", we include code used for the manuscript.
+ - Files starting with "ManyDecoders" use all decoders except the Kalman Filter and Naive Bayes
+ - Files starting with "KF" use the Kalman filter
+ - Files starting with "BayesDecoder" use the Naive Bayes decoder
+ - Files starting with "Plot" create the figures in the paper
+ - Files ending with "FullData" are for figures 3/4
+ - Files ending with "DataAmt" are for figures 5/6
+ - Files ending with "FewNeurons" are for figure 7
+ - Files ending with "BinSize" are for figure 8
+ - Files mentioning "Hyperparams" are for figure 9
