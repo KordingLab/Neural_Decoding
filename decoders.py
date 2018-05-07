@@ -50,7 +50,6 @@ except ImportError:
     print("\nWARNING: Keras package is not installed. You will be unable to use all neural net decoders")
     pass
 
-from bayes_opt import BayesianOptimization
 
 ##################### DECODER FUNCTIONS ##########################
 
