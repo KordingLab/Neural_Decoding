@@ -53,6 +53,63 @@ except ImportError:
 
 ##################### DECODER FUNCTIONS ##########################
 
+##################### BAYESIAN RIDGE REGRESSION ##########################
+
+class BayesDecoder(object):
+
+    """
+    Class for the Bayes regression Decoder
+
+    There are no parameters set yet.
+
+     """
+
+    def __init__(self):
+        return
+
+
+    def fit(self,X_flat_train,y_train):
+
+        """
+        Train Wiener Filter Decoder
+
+        Parameters
+        ----------
+        X_flat_train: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+        ## BayesianRidge does not allow for multidimensional output
+        ## each feature needs to be fitted/predicted separately
+        
+        self.output_dim = y_train.shape[1]
+        
+        self.model = [linear_model.BayesianRidge() for _ in range(self.output_dim)]  #Initialize linear regression model array (one for each output dim)
+        for k in range(self.output_dim):
+            self.model[k].fit(X_flat_train, y_train[:, k]) #Train the model
+
+
+    def predict(self,X_flat_test):
+
+        """
+        Predict outcomes using trained Bayes regressor
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        y_test_predicted= np.array([self.model[k].predict(X_flat_test) for k in range(self.output_dim)]).T #Make predictions
+        return y_test_predicted
 
 
 ##################### WIENER FILTER ##########################
