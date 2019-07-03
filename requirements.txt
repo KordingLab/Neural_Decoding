@@ -1,4 +1,4 @@
-xgboost.egg==info
+xgboost>=0.9.0
 statsmodels>=0.9.0
 scipy>=1.2.1
 numpy>=1.16.3
