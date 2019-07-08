@@ -13,7 +13,25 @@ Code used for the paper is in the "Paper_code" folder. It is described further a
 
 All 3 datasets (motor cortex, somatosensory cortex, and hippocampus) used in the paper can be downloaded [here](https://www.dropbox.com/sh/n4924ipcfjqc0t6/AACPWjxDKPEzQiXKUUFriFkJa?dl=0). They are in both matlab and python formats, and can be used in the example files described below.
 
+## Installation
+
+This package can be installed via `pip` at the command line by typing
+```buildoutcfg
+pip install Neural-Decoding
+```
+or manually via
+```buildoutcfg
+git clone https://github.com/KordingLab/Neural_Decoding.git
+cd Neural_Decoding
+python setup.py install
+```
+You'll have to install each dependency yourself if you install manually. We've designed the code so that not all machine learning packages
+need to be installed for the others to work.
+
 ## Dependencies
+All packages will be installed automatically when installing from `pip` (because of the `requirements.txt` file).
+
+If installing manually via `python setup.py install`:
 In order to run all the decoders based on neural networks, you need to install [Keras](https://keras.io/#installation) <br>
 In order to run the XGBoost Decoder, you need to install [XGBoost](https://pypi.python.org/pypi/xgboost/) <br>
 In order to run the Wiener Filter, Wiener Cascade, or Support Vector Regression you will need [scikit-learn](http://scikit-learn.org/stable/install.html). <br>
