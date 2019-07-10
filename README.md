@@ -53,8 +53,8 @@ We have provided a jupyter notebook, "Example_format_data" with an example of ho
 
 First we will import the necessary functions
 ```python
-from decoders import LSTMDecoder #Import LSTM decoder
-from preprocessing_funcs import get_spikes_with_history #Import function to get the covariate matrix that includes spike history from previous bins
+from Neural_Decoding.decoders import LSTMDecoder #Import LSTM decoder
+from Neural_Decoding.preprocessing_funcs import get_spikes_with_history #Import function to get the covariate matrix that includes spike history from previous bins
 ```
 Next, we will define the time period we are using spikes from (relative to the output we are decoding)
 ```python
