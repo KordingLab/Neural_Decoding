@@ -1,10 +1,10 @@
-# Neural_Decoding: 
+# Neural_Decoding:
 
 ### A python package that includes many methods for decoding neural activity
 
 The package contains a mixture of classic decoding methods (Wiener Filter, Wiener Cascade, Kalman Filter, Naive Bayes, Support Vector Regression) and modern machine learning methods (XGBoost, Dense Neural Network, Recurrent Neural Net, GRU, LSTM).
 
-The decoders are currently designed to predict continuously valued output. In the future, we will modify the functions to also allow classification.
+The decoders are currently designed to predict continuously valued output. In the future, we will modify the functions to also allow classification. 
 
 ## Our manuscript and datasets
 This package accompanies a [manuscript](https://arxiv.org/abs/1708.00909) that compares the performance of these methods on several datasets. We would appreciate if you cite that manuscript if you use our code or data for your research.
@@ -38,8 +38,8 @@ In order to run the Wiener Filter, Wiener Cascade, or Support Vector Regression 
 In order to do hyperparameter optimization, you need to install [BayesianOptimization](https://github.com/fmfn/BayesianOptimization)
 
 ## Getting started
-We have included jupyter notebooks that provide detailed examples of how to use the decoders. 
- - The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders. These examples work well with the somatosensory and motor cortex datasets. 
+We have included jupyter notebooks that provide detailed examples of how to use the decoders.
+ - The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders. These examples work well with the somatosensory and motor cortex datasets.
  - There are minor differences in the hippocampus dataset, so we have included a folder, "Examples_hippocampus", with analogous example files. This folder also includes an example file for using the Naive Bayes decoder (since it works much better on our hippocampus dataset).
  - We have also included a notebook, "Example_hyperparam_opt", that demonstrates how to do hyperparameter optimization for the decoders.
 
@@ -95,7 +95,7 @@ First, we will describe the format of data that is necessary for the decoders
 - The output, "y" is a 2d matrix of size "total number of time bins" x "number of output features."
 
 <br> Here are all the decoders within "decoders.py":
-1. **WienerFilterDecoder** 
+1. **WienerFilterDecoder**
  - The Wiener Filter is simply multiple linear regression using X_flat as an input.
  - It has no input parameters
 2. **WienerCascadeDecoder**
@@ -103,11 +103,11 @@ First, we will describe the format of data that is necessary for the decoders
  - It has parameter *degree* (the degree of the polynomial used for the nonlinearity)
 3. **KalmanFilterDecoder**
  - We used a Kalman filter similar to that implemented in [Wu et al. 2003](https://papers.nips.cc/paper/2178-neural-decoding-of-cursor-motion-using-a-kalman-filter.pdf). In the Kalman filter, the measurement was the neural spike trains, and the hidden state was the kinematics.
- - We have one parameter *C* (which is not in the previous implementation). This parameter scales the noise matrix associated with the transition in kinematic states. It effectively allows changing the weight of the new neural evidence in the current update. 
+ - We have one parameter *C* (which is not in the previous implementation). This parameter scales the noise matrix associated with the transition in kinematic states. It effectively allows changing the weight of the new neural evidence in the current update.
 4. **NaiveBayesDecoder**
  - We used a Naive Bayes decoder similar to that implemented in [Zhang et al. 1998](https://www.physiology.org/doi/abs/10.1152/jn.1998.79.2.1017) (see manuscript for details).
  - It has parameters *encoding_model* (for either a linear or quadratic encoding model) and *res* (to set the resolution of predicted values)
-5. **SVRDecoder** 
+5. **SVRDecoder**
  - This decoder uses support vector regression using X_flat as an input.
  - It has parameters *C* (the penalty of the error term) and *max_iter* (the maximum number of iterations).
  - It works best when the output ("y") has been normalized
@@ -118,13 +118,13 @@ First, we will describe the format of data that is necessary for the decoders
  - Using the Keras library, we created a dense feedforward neural network that uses X_flat to predict the outputs. It can have any number of hidden layers.
  - It has parameters *units* (the number of units in each layer), *dropout* (the proportion of units that get dropped out), *num_epochs* (the number of epochs used for training), and *verbose* (whether to display progress of the fit after each epoch)
 8. **SimpleRNNDecoder**
- - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a standard recurrent neural network (RNN) with a relu activation. The units from this recurrent layer were fully connected to the output layer. 
+ - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a standard recurrent neural network (RNN) with a relu activation. The units from this recurrent layer were fully connected to the output layer.
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 9. **GRUDecoder**
- - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a network of gated recurrent units (GRUs; a more sophisticated RNN). The units from this recurrent layer were fully connected to the output layer. 
+ - Using the Keras library, we created a neural network architecture where the spiking input (from matrix X) was fed into a network of gated recurrent units (GRUs; a more sophisticated RNN). The units from this recurrent layer were fully connected to the output layer.
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 10. **LSTMDecoder**
- - All methods were the same as for the GRUDecoder, except  Long Short Term Memory networks (LSTMs; another more sophisticated RNN) were used rather than GRUs. 
+ - All methods were the same as for the GRUDecoder, except  Long Short Term Memory networks (LSTMs; another more sophisticated RNN) were used rather than GRUs.
  - It has parameters *units*, *dropout*, *num_epochs*, and *verbose*
 
 When designing the XGBoost and neural network decoders, there were many additional parameters that could have been utilized (e.g. regularization). To simplify ease of use, we only included parameters that were sufficient for producing good fits.
@@ -133,7 +133,7 @@ When designing the XGBoost and neural network decoders, there were many addition
 The file has functions for metrics to evaluate model fit. It currently has functions to calculate:
  - ![equation](https://latex.codecogs.com/gif.latex?%24R%5E2%3D1-%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%7B%7D%5Cfrac%7B%5Cleft%28y_i-%5Cwidehat%7By_i%7D%20%5Cright%20%29%5E2%7D%7B%5Cleft%28y_i-%5Cbar%7By_i%7D%20%5Cright%20%29%5E2%7D)
  - ![equation](https://latex.codecogs.com/gif.latex?%24%5Crho%24) : The pearson correlation coefficient
- 
+
 ### preprocessing_funcs.py
 The file contains functions for preprocessing data that may be useful for putting the neural activity and outputs in the correct format for our decoding functions
  - **bin_spikes**: converts spike times to the number of spikes within time bins
