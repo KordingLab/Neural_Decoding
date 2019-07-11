@@ -29,6 +29,7 @@ except ImportError:
 try:
     from sklearn import linear_model #For Wiener Filter and Wiener Cascade
     from sklearn.svm import SVR #For support vector regression (SVR)
+    from sklearn.svm import SVC #For support vector classification (SVM)
 except ImportError:
     print("\nWARNING: scikit-learn is not installed. You will be unable to use the Wiener Filter or Wiener Cascade Decoders")
     pass
@@ -46,9 +47,17 @@ except ImportError:
 try:
     from keras.models import Sequential
     from keras.layers import Dense, LSTM, SimpleRNN, GRU, Activation, Dropout
+    from keras.utils import np_utils
 except ImportError:
     print("\nWARNING: Keras package is not installed. You will be unable to use all neural net decoders")
     pass
+
+try:
+    from sklearn.preprocessing import OneHotEncoder
+except ImportError:
+    print("\nWARNING: Sklearn OneHotEncoder not installed. You will be unable to use XGBoost for Classification")
+    pass
+
 
 
 ##################### DECODER FUNCTIONS ##########################
@@ -57,7 +66,7 @@ except ImportError:
 
 ##################### WIENER FILTER ##########################
 
-class WienerFilterDecoder(object):
+class WienerFilterRegression(object):
 
     """
     Class for the Wiener Filter Decoder
@@ -114,7 +123,7 @@ class WienerFilterDecoder(object):
 
 ##################### WIENER CASCADE ##########################
 
-class WienerCascadeDecoder(object):
+class WienerCascadeRegression(object):
 
     """
     Class for the Wiener Cascade Decoder
@@ -187,7 +196,7 @@ class WienerCascadeDecoder(object):
 
 ##################### KALMAN FILTER ##########################
 
-class KalmanFilterDecoder(object):
+class KalmanFilterRegression(object):
 
     """
     Class for the Kalman Filter Decoder
@@ -307,7 +316,7 @@ class KalmanFilterDecoder(object):
 
 ##################### DENSE (FULLY-CONNECTED) NEURAL NETWORK ##########################
 
-class DenseNNDecoder(object):
+class DenseNNRegression(object):
 
     """
     Class for the dense (fully-connected) neural network decoder
@@ -407,7 +416,7 @@ class DenseNNDecoder(object):
 
 ##################### SIMPLE RECURRENT NEURAL NETWORK ##########################
 
-class SimpleRNNDecoder(object):
+class SimpleRNNRegression(object):
 
     """
     Class for the simple recurrent neural network decoder
@@ -486,7 +495,7 @@ class SimpleRNNDecoder(object):
 
 ##################### GATED RECURRENT UNIT (GRU) DECODER ##########################
 
-class GRUDecoder(object):
+class GRURegression(object):
 
     """
     Class for the gated recurrent unit (GRU) decoder
@@ -565,7 +574,7 @@ class GRUDecoder(object):
 
 #################### LONG SHORT TERM MEMORY (LSTM) DECODER ##########################
 
-class LSTMDecoder(object):
+class LSTMRegression(object):
 
     """
     Class for the gated recurrent unit (GRU) decoder
@@ -644,7 +653,7 @@ class LSTMDecoder(object):
 
 ##################### EXTREME GRADIENT BOOSTING (XGBOOST) ##########################
 
-class XGBoostDecoder(object):
+class XGBoostRegression(object):
 
     """
     Class for the XGBoost Decoder
@@ -738,7 +747,7 @@ class XGBoostDecoder(object):
 
 ##################### SUPPORT VECTOR REGRESSION ##########################
 
-class SVRDecoder(object):
+class SVRegression(object):
 
     """
     Class for the Support Vector Regression (SVR) Decoder
@@ -788,7 +797,7 @@ class SVRDecoder(object):
     def predict(self,X_flat_test):
 
         """
-        Predict outcomes using trained Wiener Cascade Decoder
+        Predict outcomes using trained SVR Decoder
 
         Parameters
         ----------
@@ -827,7 +836,7 @@ def glm_run(Xr, Yr, X_range):
     return Y_range
 
 
-class NaiveBayesDecoder(object):
+class NaiveBayesRegression(object):
 
     """
     Class for the Naive Bayes Decoder
@@ -983,3 +992,629 @@ class NaiveBayesDecoder(object):
             y_test_predicted[t,:]=input_xy[loc_idx,:] #The current predicted output
 
         return y_test_predicted #Return predictions
+
+
+
+######### ALIASES for Regression ########
+
+WienerFilterDecoder = WienerFilterRegression
+WienerCascadeDecoder = WienerCascadeRegression
+KalmanFilterDecoder = KalmanFilterRegression
+DenseNNDecoder = DenseNNRegression
+SimpleRNNDecoder = SimpleRNNRegression
+GRUDecoder = GRURegression
+LSTMDecoder = LSTMRegression
+XGBoostDecoder = XGBoostRegression
+SVRDecoder = SVRegression
+NaiveBayesDecoder = NaiveBayesRegression
+
+
+
+
+####################################### CLASSIFICATION ####################################################
+
+
+
+
+class WienerFilterClassification(object):
+
+    """
+    Class for the Wiener Filter Decoder
+
+    There are no parameters to set.
+
+    This simply leverages the scikit-learn logistic regression.
+    """
+
+    def __init__(self,C=1):
+        self.C=C
+        return
+
+
+    def fit(self,X_flat_train,y_train):
+
+        """
+        Train Wiener Filter Decoder
+
+        Parameters
+        ----------
+        X_flat_train: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+        # if self.C>0:
+        self.model=linear_model.LogisticRegression(C=self.C,multi_class='auto') #Initialize linear regression model
+        # else:
+            # self.model=linear_model.LogisticRegression(penalty='none',solver='newton-cg') #Initialize linear regression model
+        self.model.fit(X_flat_train, y_train) #Train the model
+
+
+    def predict(self,X_flat_test):
+
+        """
+        Predict outcomes using trained Wiener Cascade Decoder
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        y_test_predicted=self.model.predict(X_flat_test) #Make predictions
+        return y_test_predicted
+
+
+
+
+##################### SUPPORT VECTOR REGRESSION ##########################
+
+class SVClassification(object):
+
+    """
+    Class for the Support Vector Classification Decoder
+    This simply leverages the scikit-learn SVM
+
+    Parameters
+    ----------
+    C: float, default=3.0
+        Penalty parameter of the error term
+
+    max_iter: integer, default=-1
+        the maximum number of iteraations to run (to save time)
+        max_iter=-1 means no limit
+        Typically in the 1000s takes a short amount of time on a laptop
+    """
+
+    def __init__(self,max_iter=-1,C=3.0):
+        self.max_iter=max_iter
+        self.C=C
+        return
+
+
+    def fit(self,X_flat_train,y_train):
+
+        """
+        Train SVR Decoder
+
+        Parameters
+        ----------
+        X_flat_train: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+        model=SVC(C=self.C, max_iter=self.max_iter) #Initialize model
+        model.fit(X_flat_train, y_train) #Train the model
+        self.model=model
+
+
+    def predict(self,X_flat_test):
+
+        """
+        Predict outcomes using trained SV Decoder
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        model=self.model #Get fit model for that output
+        y_test_predicted=model.predict(X_flat_test) #Make predictions
+        return y_test_predicted
+
+
+##################### DENSE (FULLY-CONNECTED) NEURAL NETWORK ##########################
+
+class DenseNNClassification(object):
+
+    """
+    Class for the dense (fully-connected) neural network decoder
+
+    Parameters
+    ----------
+
+    units: integer or vector of integers, optional, default 400
+        This is the number of hidden units in each layer
+        If you want a single layer, input an integer (e.g. units=400 will give you a single hidden layer with 400 units)
+        If you want multiple layers, input a vector (e.g. units=[400,200]) will give you 2 hidden layers with 400 and 200 units, repsectively.
+        The vector can either be a list or an array
+
+    dropout: decimal, optional, default 0
+        Proportion of units that get dropped out
+
+    num_epochs: integer, optional, default 10
+        Number of epochs used for training
+
+    verbose: binary, optional, default=0
+        Whether to show progress of the fit after each epoch
+    """
+
+    def __init__(self,units=400,dropout=0,num_epochs=10,verbose=0):
+         self.dropout=dropout
+         self.num_epochs=num_epochs
+         self.verbose=verbose
+
+         #If "units" is an integer, put it in the form of a vector
+         try: #Check if it's a vector
+             units[0]
+         except: #If it's not a vector, create a vector of the number of units for each layer
+             units=[units]
+         self.units=units
+
+         #Determine the number of hidden layers (based on "units" that the user entered)
+         self.num_layers=len(units)
+
+    def fit(self,X_flat_train,y_train):
+
+        """
+        Train DenseNN Decoder
+
+        Parameters
+        ----------
+        X_flat_train: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+        #Use one-hot coding for y
+        if y_train.ndim==1:
+            y_train=np_utils.to_categorical(y_train.astype(int))
+        elif y_train.shape[1]==1:
+            y_train=np_utils.to_categorical(y_train.astype(int))
+
+        model=Sequential() #Declare model
+        #Add first hidden layer
+        model.add(Dense(self.units[0],input_dim=X_flat_train.shape[1])) #Add dense layer
+        model.add(Activation('relu')) #Add nonlinear (tanh) activation
+        # if self.dropout!=0:
+        if self.dropout!=0: model.add(Dropout(self.dropout))  #Dropout some units if proportion of dropout != 0
+
+        #Add any additional hidden layers (beyond the 1st)
+        for layer in range(self.num_layers-1): #Loop through additional layers
+            model.add(Dense(self.units[layer+1])) #Add dense layer
+            model.add(Activation('tanh')) #Add nonlinear (tanh) activation - can also make relu
+            if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units if proportion of dropout != 0
+
+        #Add dense connections to all outputs
+        model.add(Dense(y_train.shape[1])) #Add final dense layer (connected to outputs)
+        model.add(Activation('softplus'))
+
+        #Fit model (and set fitting parameters)
+        model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy']) #Set loss function and optimizer
+        model.fit(X_flat_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        self.model=model
+
+    def predict(self,X_flat_test):
+
+        """
+        Predict outcomes using trained DenseNN Decoder
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        y_test_predicted_raw = self.model.predict(X_flat_test) #Make predictions
+
+        y_test_predicted=np.argmax(y_test_predicted_raw,axis=1)
+
+        return y_test_predicted
+
+
+
+##################### SIMPLE RNN DECODER ##########################
+
+class SimpleRNNClassification(object):
+
+    """
+    Class for the RNN decoder
+
+    Parameters
+    ----------
+    units: integer, optional, default 400
+        Number of hidden units in each layer
+
+    dropout: decimal, optional, default 0
+        Proportion of units that get dropped out
+
+    num_epochs: integer, optional, default 10
+        Number of epochs used for training
+
+    verbose: binary, optional, default=0
+        Whether to show progress of the fit after each epoch
+    """
+
+    def __init__(self,units=400,dropout=0,num_epochs=10,verbose=0):
+         self.units=units
+         self.dropout=dropout
+         self.num_epochs=num_epochs
+         self.verbose=verbose
+
+
+    def fit(self,X_train,y_train):
+
+        """
+        Train GRU Decoder
+
+        Parameters
+        ----------
+        X_train: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+
+        #Use one-hot coding for y
+        if y_train.ndim==1:
+            y_train=np_utils.to_categorical(y_train.astype(int))
+        elif y_train.shape[1]==1:
+            y_train=np_utils.to_categorical(y_train.astype(int))
+
+        model=Sequential() #Declare model
+        #Add recurrent layer
+
+        #### MAKE RELU ACTIVATION BELOW LIKE IN REGRESSION????? ####
+        model.add(SimpleRNN(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
+
+        #Add dense connections to output layer
+        model.add(Dense(y_train.shape[1]))
+        model.add(Activation('softplus'))
+
+        #Fit model (and set fitting parameters)
+        model.compile(loss='categorical_crossentropy',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
+        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        self.model=model
+
+
+    def predict(self,X_test):
+
+        """
+        Predict outcomes using trained LSTM Decoder
+
+        Parameters
+        ----------
+        X_test: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        y_test_predicted_raw = self.model.predict(X_test) #Make predictions
+        y_test_predicted=np.argmax(y_test_predicted_raw,axis=1)
+
+        return y_test_predicted
+
+
+
+
+
+
+##################### GATED RECURRENT UNIT (GRU) DECODER ##########################
+
+class GRUClassification(object):
+
+    """
+    Class for the gated recurrent unit (GRU) decoder
+
+    Parameters
+    ----------
+    units: integer, optional, default 400
+        Number of hidden units in each layer
+
+    dropout: decimal, optional, default 0
+        Proportion of units that get dropped out
+
+    num_epochs: integer, optional, default 10
+        Number of epochs used for training
+
+    verbose: binary, optional, default=0
+        Whether to show progress of the fit after each epoch
+    """
+
+    def __init__(self,units=400,dropout=0,num_epochs=10,verbose=0):
+         self.units=units
+         self.dropout=dropout
+         self.num_epochs=num_epochs
+         self.verbose=verbose
+
+
+    def fit(self,X_train,y_train):
+
+        """
+        Train GRU Decoder
+
+        Parameters
+        ----------
+        X_train: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+
+        #Use one-hot coding for y
+        if y_train.ndim==1:
+            y_train=np_utils.to_categorical(y_train.astype(int))
+        elif y_train.shape[1]==1:
+            y_train=np_utils.to_categorical(y_train.astype(int))
+
+        model=Sequential() #Declare model
+        #Add recurrent layer
+        model.add(GRU(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
+
+        #Add dense connections to output layer
+        model.add(Dense(y_train.shape[1]))
+        model.add(Activation('softplus'))
+
+        #Fit model (and set fitting parameters)
+        model.compile(loss='categorical_crossentropy',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
+        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        self.model=model
+
+
+    def predict(self,X_test):
+
+        """
+        Predict outcomes using trained LSTM Decoder
+
+        Parameters
+        ----------
+        X_test: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        y_test_predicted_raw = self.model.predict(X_test) #Make predictions
+        y_test_predicted=np.argmax(y_test_predicted_raw,axis=1)
+
+        return y_test_predicted
+
+
+
+
+
+#################### LONG SHORT TERM MEMORY (LSTM) DECODER ##########################
+
+class LSTMClassification(object):
+
+    """
+    Class for the LSTM decoder
+
+    Parameters
+    ----------
+    units: integer, optional, default 400
+        Number of hidden units in each layer
+
+    dropout: decimal, optional, default 0
+        Proportion of units that get dropped out
+
+    num_epochs: integer, optional, default 10
+        Number of epochs used for training
+
+    verbose: binary, optional, default=0
+        Whether to show progress of the fit after each epoch
+    """
+
+    def __init__(self,units=400,dropout=0,num_epochs=10,verbose=0):
+         self.units=units
+         self.dropout=dropout
+         self.num_epochs=num_epochs
+         self.verbose=verbose
+
+
+    def fit(self,X_train,y_train):
+
+        """
+        Train LSTM Decoder
+
+        Parameters
+        ----------
+        X_train: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+
+        #Use one-hot coding for y
+        if y_train.ndim==1:
+            y_train=np_utils.to_categorical(y_train.astype(int))
+        elif y_train.shape[1]==1:
+            y_train=np_utils.to_categorical(y_train.astype(int))
+
+        model=Sequential() #Declare model
+        #Add recurrent layer
+        model.add(LSTM(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
+
+        #Add dense connections to output layer
+        model.add(Dense(y_train.shape[1]))
+        model.add(Activation('softplus'))
+
+        #Fit model (and set fitting parameters)
+        model.compile(loss='categorical_crossentropy',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
+        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        self.model=model
+
+
+    def predict(self,X_test):
+
+        """
+        Predict outcomes using trained LSTM Decoder
+
+        Parameters
+        ----------
+        X_test: numpy 3d array of shape [n_samples,n_time_bins,n_neurons]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        y_test_predicted_raw = self.model.predict(X_test) #Make predictions
+        y_test_predicted=np.argmax(y_test_predicted_raw,axis=1)
+
+        return y_test_predicted
+
+
+
+
+##################### EXTREME GRADIENT BOOSTING (XGBOOST) ##########################
+
+class XGBoostClassification(object):
+
+    """
+    Class for the XGBoost Decoder
+
+    Parameters
+    ----------
+    max_depth: integer, optional, default=3
+        the maximum depth of the trees
+
+    num_round: integer, optional, default=300
+        the number of trees that are fit
+
+    eta: float, optional, default=0.3
+        the learning rate
+
+    gpu: integer, optional, default=-1
+        if the gpu version of xgboost is installed, this can be used to select which gpu to use
+        for negative values (default), the gpu is not used
+    """
+
+    def __init__(self,max_depth=3,num_round=300,eta=0.3,gpu=-1):
+        self.max_depth=max_depth
+        self.num_round=num_round
+        self.eta=eta
+        self.gpu=gpu
+
+    def fit(self,X_flat_train,y_train):
+
+        """
+        Train XGBoost Decoder
+
+        Parameters
+        ----------
+        X_flat_train: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 2d array of shape [n_samples, n_outputs]
+            This is the outputs that are being predicted
+        """
+
+        # Get number of classes
+        oh=OneHotEncoder(categories='auto',sparse=False)
+        if y_train.ndim==1:
+            y_train2=oh.fit_transform(y_train[:,np.newaxis].astype(int))
+        elif y_train.shape[1]==1:
+            y_train2=oh.fit_transform(y_train.astype(int))
+        n_classes=y_train2.shape[1]
+
+        #Set parameters for XGBoost
+        param = {'objective': "multi:softmax", #or softprob
+            'eval_metric': "mlogloss", #loglikelihood loss
+            # 'eval_metric': "merror",
+            'max_depth': self.max_depth, #this is the only parameter we have set, it's one of the way or regularizing
+            'eta': self.eta,
+            'num_class': n_classes,#y_train.shape[1],
+            'seed': 2925, #for reproducibility
+            'silent': 1}
+        if self.gpu<0:
+            param['nthread'] = -1 #with -1 it will use all available threads
+        else:
+            param['gpu_id']=self.gpu
+            param['updater']='grow_gpu'
+
+
+        dtrain = xgb.DMatrix(X_flat_train, label=y_train) #Put in correct format for XGB
+        bst = xgb.train(param, dtrain, self.num_round) #Train model
+
+        self.model=bst
+
+
+    def predict(self,X_flat_test):
+
+        """
+        Predict outcomes using trained XGBoost Decoder
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        dtest = xgb.DMatrix(X_flat_test) #Put in XGB format
+        bst=self.model #Get fit model
+        y_test_predicted = bst.predict(dtest) #Make prediction
+        return y_test_predicted
