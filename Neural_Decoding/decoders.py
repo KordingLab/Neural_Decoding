@@ -1527,7 +1527,6 @@ class LSTMClassification(object):
 ##################### EXTREME GRADIENT BOOSTING (XGBOOST) ##########################
 
 class XGBoostClassification(object):
-
     """
     Class for the XGBoost Decoder
 
@@ -1547,13 +1546,13 @@ class XGBoostClassification(object):
         for negative values (default), the gpu is not used
     """
 
-    def __init__(self,max_depth=3,num_round=300,eta=0.3,gpu=-1):
-        self.max_depth=max_depth
-        self.num_round=num_round
-        self.eta=eta
-        self.gpu=gpu
+    def __init__(self, max_depth=3, num_round=300, eta=0.3, gpu=-1):
+        self.max_depth = max_depth
+        self.num_round = num_round
+        self.eta = eta
+        self.gpu = gpu
 
-    def fit(self,X_flat_train,y_train):
+    def fit(self, X_flat_train, y_train):
 
         """
         Train XGBoost Decoder
@@ -1564,39 +1563,61 @@ class XGBoostClassification(object):
             This is the neural data.
             See example file for an example of how to format the neural data correctly
 
-        y_train: numpy 2d array of shape [n_samples, n_outputs]
+        y_train: numpy 1d array of shape (n_samples), with integers representing classes
+                    or 2d array of shape [n_samples, n_outputs] in 1-hot form
             This is the outputs that are being predicted
         """
 
+        # turn to categorial (not 1-hat)
+        if (y_train.ndim == 2):
+            if (y_train.shape[1] == 1):
+                y_train = np.reshape(y_train, -1)
+            else:
+                y_train = np.argmax(y_train, axis=1, out=None)
+
         # Get number of classes
-        oh=OneHotEncoder(categories='auto',sparse=False)
-        if y_train.ndim==1:
-            y_train2=oh.fit_transform(y_train[:,np.newaxis].astype(int))
-        elif y_train.shape[1]==1:
-            y_train2=oh.fit_transform(y_train.astype(int))
-        n_classes=y_train2.shape[1]
+        n_classes = len(np.unique(y_train))
 
-        #Set parameters for XGBoost
-        param = {'objective': "multi:softmax", #or softprob
-            'eval_metric': "mlogloss", #loglikelihood loss
-            # 'eval_metric': "merror",
-            'max_depth': self.max_depth, #this is the only parameter we have set, it's one of the way or regularizing
-            'eta': self.eta,
-            'num_class': n_classes,#y_train.shape[1],
-            'seed': 2925, #for reproducibility
-            'silent': 1}
-        if self.gpu<0:
-            param['nthread'] = -1 #with -1 it will use all available threads
+        # Set parameters for XGBoost
+        param = {'objective': "multi:softmax",  # or softprob
+                 'eval_metric': "mlogloss",  # loglikelihood loss
+                 # 'eval_metric': "merror",
+                 'max_depth': self.max_depth, # this is the only parameter we have set, it's one of the way or regularizing
+                 'eta': self.eta,
+                 'num_class': n_classes,  # y_train.shape[1],
+                 'seed': 2925,  # for reproducibility
+                 'silent': 1}
+        if self.gpu < 0:
+            param['nthread'] = -1  # with -1 it will use all available threads
         else:
-            param['gpu_id']=self.gpu
-            param['updater']='grow_gpu'
+            param['gpu_id'] = self.gpu
+            param['updater'] = 'grow_gpu'
 
+        dtrain = xgb.DMatrix(X_flat_train, label=y_train)  # Put in correct format for XGB
+        bst = xgb.train(param, dtrain, self.num_round)  # Train model
 
-        dtrain = xgb.DMatrix(X_flat_train, label=y_train) #Put in correct format for XGB
-        bst = xgb.train(param, dtrain, self.num_round) #Train model
+        self.model = bst
 
-        self.model=bst
+    def predict(self, X_flat_test):
 
+        """
+        Predict outcomes using trained XGBoost Decoder
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 1d array with integers as classes
+            The predicted outputs
+        """
+
+        dtest = xgb.DMatrix(X_flat_test)  # Put in XGB format
+        bst = self.model  # Get fit model
+        y_test_predicted = bst.predict(dtest)  # Make prediction
+        return y_test_predicted
 
     def predict(self,X_flat_test):
 
