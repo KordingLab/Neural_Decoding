@@ -39,16 +39,18 @@ In order to do hyperparameter optimization, you need to install [BayesianOptimiz
 
 ## Getting started
 We have included jupyter notebooks that provide detailed examples of how to use the decoders.
- - The file "Examples_kf_decoder" is for the Kalman filter decoder and the file "Examples_all_decoders" is for all other decoders. These examples work well with the somatosensory and motor cortex datasets.
- - There are minor differences in the hippocampus dataset, so we have included a folder, "Examples_hippocampus", with analogous example files. This folder also includes an example file for using the Naive Bayes decoder (since it works much better on our hippocampus dataset).
- - We have also included a notebook, "Example_hyperparam_opt", that demonstrates how to do hyperparameter optimization for the decoders.
+ - The file **`central_concepts_in_ML_for_decoding.ipynb`** is designed for users who are new to machine learning. It builds basic concepts and shows some examples, and also has several exercises to make sure you know your stuff. (Link to the solutions is inside).
+ - The file **`Examples_kf_decoder.ipynb`** is for the Kalman filter decoder
+ - The file **`Examples_all_decoders.ipynb`** is for all other decoders. These examples work well with the somatosensory and motor cortex datasets.
+ - There are minor differences in the hippocampus dataset, so we have included a folder, **`Examples_hippocampus`**, with analogous example files. This folder also includes an example file for using the Naive Bayes decoder (since it works much better on our hippocampus dataset).
+ - We have also included a notebook, **`Example_hyperparam_opt.ipynb`**, that demonstrates how to do hyperparameter optimization for the decoders.
 
 Here we provide a basic example where we are using a LSTM decoder. <br>
 For this example we assume we have already loaded matrices:
  - "neural_data": a matrix of size "total number of time bins" x "number of neurons," where each entry is the firing rate of a given neuron in a given time bin.
  - "y": the output variable that you are decoding (e.g. velocity), and is a matrix of size "total number of time bins" x "number of features you are decoding."  <br>
 
-We have provided a jupyter notebook, "Example_format_data" with an example of how to get Matlab data into this format.
+We have provided a Jupyter notebook, **`Example_format_data.ipynb`** with an example of how to get Matlab data into this format.
 <br>
 
 First we will import the necessary functions
