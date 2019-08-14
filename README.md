@@ -2,9 +2,14 @@
 
 ### A python package that includes many methods for decoding neural activity
 
-The package contains a mixture of classic decoding methods (Wiener Filter, Wiener Cascade, Kalman Filter, Naive Bayes, Support Vector Regression) and modern machine learning methods (XGBoost, Dense Neural Network, Recurrent Neural Net, GRU, LSTM).
+The package contains a mixture of classic decoding methods and modern machine learning methods.
 
-The decoders are currently designed to predict continuously valued output. In the future, we will modify the functions to also allow classification. 
+For regression, we currently include: Wiener Filter, Wiener Cascade, Kalman Filter, Naive Bayes, Support Vector Regression, XGBoost, Dense Neural Network, Recurrent Neural Net, GRU, LSTM.
+
+For classification, we currently include: Logistic Regression, Support Vector Classification, XGBoost, Dense Neural Network, Recurrent Neural Net, GRU, LSTM.
+
+This package was originally designed for regression and classification functions were just added - therefore, the ReadMe, examples, and preprocessing functions are still catered for regression. We are in the process of adding more for classification.
+
 
 ## Our manuscript and datasets
 This package accompanies a [manuscript](https://arxiv.org/abs/1708.00909) that compares the performance of these methods on several datasets. We would appreciate if you cite that manuscript if you use our code or data for your research.
@@ -96,7 +101,7 @@ First, we will describe the format of data that is necessary for the decoders
 - For the Kalman filter, you can set the "lag" - what time bin of the neural data (relative to the output) is used to predict the output. The input format for the Kalman filter is simply the 2d matrix of size "total number of time bins" x "number of neurons," where each entry is the firing rate of a given neuron in a given time bin.
 - The output, "y" is a 2d matrix of size "total number of time bins" x "number of output features."
 
-<br> Here are all the decoders within "decoders.py":
+<br> Here are all the decoders within "decoders.py" for performing regression:
 1. **WienerFilterDecoder**
  - The Wiener Filter is simply multiple linear regression using X_flat as an input.
  - It has no input parameters
