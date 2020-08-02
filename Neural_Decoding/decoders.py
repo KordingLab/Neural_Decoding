@@ -45,6 +45,8 @@ except ImportError:
 #Note that Keras has many more built-in functions that I have not imported because I have not used them
 #But if you want to modify the decoders with other functions (e.g. regularization), import them here
 try:
+    import keras
+    keras_v1=int(keras.__version__[0])<=1
     from keras.models import Sequential
     from keras.layers import Dense, LSTM, SimpleRNN, GRU, Activation, Dropout
     from keras.utils import np_utils
@@ -388,7 +390,10 @@ class DenseNNRegression(object):
 
         #Fit model (and set fitting parameters)
         model.compile(loss='mse',optimizer='adam',metrics=['accuracy']) #Set loss function and optimizer
-        model.fit(X_flat_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        if keras_v1:
+            model.fit(X_flat_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        else:
+            model.fit(X_flat_train,y_train,epochs=self.num_epochs,verbose=self.verbose) #Fit the model
         self.model=model
 
 
@@ -460,7 +465,10 @@ class SimpleRNNRegression(object):
 
         model=Sequential() #Declare model
         #Add recurrent layer
-        model.add(SimpleRNN(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout,activation='relu')) #Within recurrent layer, include dropout
+        if keras_v1:
+            model.add(SimpleRNN(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout,activation='relu')) #Within recurrent layer, include dropout
+        else:
+            model.add(SimpleRNN(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout=self.dropout,recurrent_dropout=self.dropout,activation='relu')) #Within recurrent layer, include dropout
         if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
 
         #Add dense connections to output layer
@@ -468,7 +476,10 @@ class SimpleRNNRegression(object):
 
         #Fit model (and set fitting parameters)
         model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
-        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        if keras_v1:
+            model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        else:
+            model.fit(X_train,y_train,epochs=self.num_epochs,verbose=self.verbose) #Fit the model
         self.model=model
 
 
@@ -539,7 +550,10 @@ class GRURegression(object):
 
         model=Sequential() #Declare model
         #Add recurrent layer
-        model.add(GRU(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if keras_v1:
+            model.add(GRU(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        else:
+            model.add(GRU(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout=self.dropout,recurrent_dropout=self.dropout))
         if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
 
         #Add dense connections to output layer
@@ -547,7 +561,10 @@ class GRURegression(object):
 
         #Fit model (and set fitting parameters)
         model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
-        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        if keras_v1:
+            model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        else:
+            model.fit(X_train,y_train,epochs=self.num_epochs,verbose=self.verbose) #Fit the model
         self.model=model
 
 
@@ -618,7 +635,10 @@ class LSTMRegression(object):
 
         model=Sequential() #Declare model
         #Add recurrent layer
-        model.add(LSTM(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if keras_v1:
+            model.add(LSTM(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        else:
+            model.add(LSTM(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout=self.dropout,recurrent_dropout=self.dropout)) #Within recurrent layer, include dropout
         if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
 
         #Add dense connections to output layer
@@ -626,7 +646,10 @@ class LSTMRegression(object):
 
         #Fit model (and set fitting parameters)
         model.compile(loss='mse',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
-        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        if keras_v1:
+            model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        else:
+            model.fit(X_train,y_train,epochs=self.num_epochs,verbose=self.verbose) #Fit the model
         self.model=model
 
 
@@ -1222,8 +1245,11 @@ class DenseNNClassification(object):
 
         #Fit model (and set fitting parameters)
         model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy']) #Set loss function and optimizer
-        model.fit(X_flat_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
-        self.model=model
+        if keras_v1:
+            model.fit(X_flat_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        else:
+            model.fit(X_flat_train,y_train,epochs=self.num_epochs,verbose=self.verbose) #Fit the model
+            self.model=model
 
     def predict(self,X_flat_test):
 
@@ -1304,7 +1330,10 @@ class SimpleRNNClassification(object):
         #Add recurrent layer
 
         #### MAKE RELU ACTIVATION BELOW LIKE IN REGRESSION????? ####
-        model.add(SimpleRNN(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if keras_v1:
+            model.add(SimpleRNN(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        else:
+            model.add(SimpleRNN(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout=self.dropout,recurrent_dropout=self.dropout)) #Within recurrent layer, include dropout
         if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
 
         #Add dense connections to output layer
@@ -1313,7 +1342,10 @@ class SimpleRNNClassification(object):
 
         #Fit model (and set fitting parameters)
         model.compile(loss='categorical_crossentropy',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
-        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        if keras_v1:
+            model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        else:
+            model.fit(X_train,y_train,epochs=self.num_epochs,verbose=self.verbose) #Fit the model
         self.model=model
 
 
@@ -1396,7 +1428,10 @@ class GRUClassification(object):
 
         model=Sequential() #Declare model
         #Add recurrent layer
-        model.add(GRU(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if keras_v1:
+            model.add(GRU(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        else:
+            model.add(GRU(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout=self.dropout,recurrent_dropout=self.dropout)) #Within recurrent layer, include dropout
         if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
 
         #Add dense connections to output layer
@@ -1405,7 +1440,10 @@ class GRUClassification(object):
 
         #Fit model (and set fitting parameters)
         model.compile(loss='categorical_crossentropy',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
-        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        if keras_v1:
+            model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        else:
+            model.fit(X_train,y_train,epochs=self.num_epochs,verbose=self.verbose) #Fit the model
         self.model=model
 
 
@@ -1487,7 +1525,10 @@ class LSTMClassification(object):
 
         model=Sequential() #Declare model
         #Add recurrent layer
-        model.add(LSTM(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        if keras_v1:
+            model.add(LSTM(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout_W=self.dropout,dropout_U=self.dropout)) #Within recurrent layer, include dropout
+        else:
+            model.add(LSTM(self.units,input_shape=(X_train.shape[1],X_train.shape[2]),dropout=self.dropout,recurrent_dropout=self.dropout)) #Within recurrent layer, include dropout
         if self.dropout!=0: model.add(Dropout(self.dropout)) #Dropout some units (recurrent layer output units)
 
         #Add dense connections to output layer
@@ -1496,7 +1537,10 @@ class LSTMClassification(object):
 
         #Fit model (and set fitting parameters)
         model.compile(loss='categorical_crossentropy',optimizer='rmsprop',metrics=['accuracy']) #Set loss function and optimizer
-        model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        if keras_v1:
+            model.fit(X_train,y_train,nb_epoch=self.num_epochs,verbose=self.verbose) #Fit the model
+        else:
+            model.fit(X_train,y_train,epochs=self.num_epochs,verbose=self.verbose) #Fit the model
         self.model=model
 
 
