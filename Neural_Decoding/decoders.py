@@ -27,6 +27,7 @@ except ImportError:
 
 #Import scikit-learn (sklearn) if it is installed
 try:
+    from sklearn.pipeline import make_pipeline as mp 
     from sklearn import linear_model #For Wiener Filter and Wiener Cascade
     from sklearn.svm import SVR #For support vector regression (SVR)
     from sklearn.svm import SVC #For support vector classification (SVM)
@@ -1664,27 +1665,7 @@ class XGBoostClassification(object):
         bst = self.model  # Get fit model
         y_test_predicted = bst.predict(dtest)  # Make prediction
         return y_test_predicted
-
-    def predict(self,X_flat_test):
-
-        """
-        Predict outcomes using trained XGBoost Decoder
-
-        Parameters
-        ----------
-        X_flat_test: numpy 2d array of shape [n_samples,n_features]
-            This is the neural data being used to predict outputs.
-
-        Returns
-        -------
-        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
-            The predicted outputs
-        """
-
-        dtest = xgb.DMatrix(X_flat_test) #Put in XGB format
-        bst=self.model #Get fit model
-        y_test_predicted = bst.predict(dtest) #Make prediction
-        return y_test_predicted
+    
 
 
 ##################### PRINCIPAL COMPONENT ANALYSIS - LINEAR DISCRIMINANT CLASSIFIER ##########################
@@ -1703,7 +1684,7 @@ class  PcaLdaClassification(object):
 
     """
 
-    def __init__(self, explained_variance=80, da_type='lda'):
+    def __init__(self, explained_variance=0.8, da_type='lda'):
         self.explained_variance = explained_variance
         self.da_type = da_type
         
@@ -1711,7 +1692,7 @@ class  PcaLdaClassification(object):
     def fit(self, X_flat_train, y_train):
 
         """
-        Train XGBoost Decoder
+        Train PCA - LDA classifier
 
         Parameters
         ----------
@@ -1719,45 +1700,28 @@ class  PcaLdaClassification(object):
             This is the neural data.
             See example file for an example of how to format the neural data correctly
 
-        y_train: numpy 1d array of shape (n_samples), with integers representing classes
-                    or 2d array of shape [n_samples, n_outputs] in 1-hot form
+        y_train: numpy 1d array of shape (n_samples), with integers representing classes                    
             This is the outputs that are being predicted
         """
-
-        # turn to categorial (not 1-hat)
-        if (y_train.ndim == 2):
-            if (y_train.shape[1] == 1):
-                y_train = np.reshape(y_train, -1)
-            else:
-                y_train = np.argmax(y_train, axis=1, out=None)
-
-        # Get number of classes
-        n_classes = len(np.unique(y_train))
-
-        # Set parameters for XGBoost
-        param = {'objective': "multi:softmax",  # or softprob
-                 'eval_metric': "mlogloss",  # loglikelihood loss
-                 # 'eval_metric': "merror",
-                 'max_depth': self.max_depth, # this is the only parameter we have set, it's one of the way or regularizing
-                 'eta': self.eta,
-                 'num_class': n_classes,  # y_train.shape[1],
-                 'seed': 2925,  # for reproducibility
-                 'silent': 1}
-        if self.gpu < 0:
-            param['nthread'] = -1  # with -1 it will use all available threads
+        
+        # choose discriminant type
+        if (self.da_type == 'lda'):
+            da_model = da.LinearDiscriminantAnalysis() # linear discriminant analysis
         else:
-            param['gpu_id'] = self.gpu
-            param['updater'] = 'grow_gpu'
+            da_model = da.QuadraticDiscriminantAnalysis() # Quadratic discriminant analysis
 
-        dtrain = xgb.DMatrix(X_flat_train, label=y_train)  # Put in correct format for XGB
-        bst = xgb.train(param, dtrain, self.num_round)  # Train model
+        # Create a pipeline classifier
+        pca_lda = mp(PCA(n_components=self.explained_variance), da_model) 
 
-        self.model = bst
+        # Fit the model
+        pca_lda.fit(X_flat_train,y_train)
+
+        self.model = pca_lda        
 
     def predict(self, X_flat_test):
 
         """
-        Predict outcomes using trained XGBoost Decoder
+        Predict outcomes using trained PCA LDA Decoder
 
         Parameters
         ----------
@@ -1770,28 +1734,9 @@ class  PcaLdaClassification(object):
             The predicted outputs
         """
 
-        dtest = xgb.DMatrix(X_flat_test)  # Put in XGB format
-        bst = self.model  # Get fit model
-        y_test_predicted = bst.predict(dtest)  # Make prediction
+        
+        pca_lda_fit = self.model  # Get fit model
+        y_test_predicted = pca_lda_fit.predict(X_flat_test)  # Make prediction
         return y_test_predicted
 
-    def predict(self,X_flat_test):
-
-        """
-        Predict outcomes using trained XGBoost Decoder
-
-        Parameters
-        ----------
-        X_flat_test: numpy 2d array of shape [n_samples,n_features]
-            This is the neural data being used to predict outputs.
-
-        Returns
-        -------
-        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
-            The predicted outputs
-        """
-
-        dtest = xgb.DMatrix(X_flat_test) #Put in XGB format
-        bst=self.model #Get fit model
-        y_test_predicted = bst.predict(dtest) #Make prediction
-        return y_test_predicted
+    
