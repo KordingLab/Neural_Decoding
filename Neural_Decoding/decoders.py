@@ -1711,7 +1711,7 @@ class  PcaLdaClassification(object):
             da_model = da.QuadraticDiscriminantAnalysis() # Quadratic discriminant analysis
 
         # Create a pipeline classifier
-        pca_lda = mp(PCA(n_components=self.explained_variance), da_model) 
+        pca_lda = mp(steps =['pca',PCA(n_components=self.explained_variance),'discriminant', da_model]) 
 
         # Fit the model
         pca_lda.fit(X_flat_train,y_train)
@@ -1738,5 +1738,42 @@ class  PcaLdaClassification(object):
         pca_lda_fit = self.model  # Get fit model
         y_test_predicted = pca_lda_fit.predict(X_flat_test)  # Make prediction
         return y_test_predicted
+    
+    def get_params(self, deep=True):
+        """
+        Get parameters of pca lda model
+
+        Args:
+            deep (bool, optional): Defaults to True.
+            If True, will return the parameters of this estimators
+
+        Returns:
+            params : dict
+                Parameter names mapped to their values
+        """
+        return {"explained_variance": self.explained_variance, "da_type": self.da_type}
+
+    def get_scores(self, deep=True):
+        """
+        Get scores of pca and lda model
+
+        Args:
+            deep (bool, optional): Defaults to True.
+            
+        Returns:
+            scores: dict
+            Returns fitted scores of PCA and LDA
+        """
+        pca = self.model['pca']
+        da = self.model['discriminant']
+        scores = dict()
+        scores['pca'] = pca.componens_
+        scores['discriminant'] = da.coef_
+        return scores
+    
+    
+
+
+        
 
     
