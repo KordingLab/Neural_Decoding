@@ -30,6 +30,8 @@ try:
     from sklearn import linear_model #For Wiener Filter and Wiener Cascade
     from sklearn.svm import SVR #For support vector regression (SVR)
     from sklearn.svm import SVC #For support vector classification (SVM)
+    from sklearn.decomposition import PCA #For PCA decomposition (PCA - LDA)
+    from sklearn import discriminant_analysis as da # For LDA decomposition (PCA - LDA)
 except ImportError:
     print("\nWARNING: scikit-learn is not installed. You will be unable to use the Wiener Filter or Wiener Cascade Decoders")
     pass
@@ -1595,6 +1597,116 @@ class XGBoostClassification(object):
         self.num_round = num_round
         self.eta = eta
         self.gpu = gpu
+
+    def fit(self, X_flat_train, y_train):
+
+        """
+        Train XGBoost Decoder
+
+        Parameters
+        ----------
+        X_flat_train: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data.
+            See example file for an example of how to format the neural data correctly
+
+        y_train: numpy 1d array of shape (n_samples), with integers representing classes
+                    or 2d array of shape [n_samples, n_outputs] in 1-hot form
+            This is the outputs that are being predicted
+        """
+
+        # turn to categorial (not 1-hat)
+        if (y_train.ndim == 2):
+            if (y_train.shape[1] == 1):
+                y_train = np.reshape(y_train, -1)
+            else:
+                y_train = np.argmax(y_train, axis=1, out=None)
+
+        # Get number of classes
+        n_classes = len(np.unique(y_train))
+
+        # Set parameters for XGBoost
+        param = {'objective': "multi:softmax",  # or softprob
+                 'eval_metric': "mlogloss",  # loglikelihood loss
+                 # 'eval_metric': "merror",
+                 'max_depth': self.max_depth, # this is the only parameter we have set, it's one of the way or regularizing
+                 'eta': self.eta,
+                 'num_class': n_classes,  # y_train.shape[1],
+                 'seed': 2925,  # for reproducibility
+                 'silent': 1}
+        if self.gpu < 0:
+            param['nthread'] = -1  # with -1 it will use all available threads
+        else:
+            param['gpu_id'] = self.gpu
+            param['updater'] = 'grow_gpu'
+
+        dtrain = xgb.DMatrix(X_flat_train, label=y_train)  # Put in correct format for XGB
+        bst = xgb.train(param, dtrain, self.num_round)  # Train model
+
+        self.model = bst
+
+    def predict(self, X_flat_test):
+
+        """
+        Predict outcomes using trained XGBoost Decoder
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 1d array with integers as classes
+            The predicted outputs
+        """
+
+        dtest = xgb.DMatrix(X_flat_test)  # Put in XGB format
+        bst = self.model  # Get fit model
+        y_test_predicted = bst.predict(dtest)  # Make prediction
+        return y_test_predicted
+
+    def predict(self,X_flat_test):
+
+        """
+        Predict outcomes using trained XGBoost Decoder
+
+        Parameters
+        ----------
+        X_flat_test: numpy 2d array of shape [n_samples,n_features]
+            This is the neural data being used to predict outputs.
+
+        Returns
+        -------
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
+            The predicted outputs
+        """
+
+        dtest = xgb.DMatrix(X_flat_test) #Put in XGB format
+        bst=self.model #Get fit model
+        y_test_predicted = bst.predict(dtest) #Make prediction
+        return y_test_predicted
+
+
+##################### PRINCIPAL COMPONENT ANALYSIS - LINEAR DISCRIMINANT CLASSIFIER ##########################
+
+class  PcaLdaClassification(object):
+    """
+    Class for the PCA - LDA Classifier
+
+    Parameters
+    ----------
+    explained variance: integer, optional, default=80
+        the number of modes that explain the cumulative variance of the dataset
+
+    da_type: string, optional, default=lda
+        type of discriminant analysis; lda or qda
+
+    """
+
+    def __init__(self, explained_variance=80, da_type='lda'):
+        self.explained_variance = explained_variance
+        self.da_type = da_type
+        
 
     def fit(self, X_flat_train, y_train):
 
