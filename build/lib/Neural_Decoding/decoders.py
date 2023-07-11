@@ -27,13 +27,9 @@ except ImportError:
 
 #Import scikit-learn (sklearn) if it is installed
 try:
-    from sklearn.pipeline import Pipeline
     from sklearn import linear_model #For Wiener Filter and Wiener Cascade
     from sklearn.svm import SVR #For support vector regression (SVR)
     from sklearn.svm import SVC #For support vector classification (SVM)
-    from sklearn.decomposition import PCA #For PCA decomposition (PCA - LDA)
-    from sklearn import discriminant_analysis as da # For LDA decomposition (PCA - LDA)
-    from sklearn.base import BaseEstimator
 except ImportError:
     print("\nWARNING: scikit-learn is not installed. You will be unable to use the Wiener Filter or Wiener Cascade Decoders")
     pass
@@ -1666,63 +1662,11 @@ class XGBoostClassification(object):
         bst = self.model  # Get fit model
         y_test_predicted = bst.predict(dtest)  # Make prediction
         return y_test_predicted
-    
 
-
-##################### PRINCIPAL COMPONENT ANALYSIS - LINEAR DISCRIMINANT CLASSIFIER ##########################
-
-class  PcaLdaClassification(BaseEstimator):
-    """
-    Class for the PCA - LDA Classifier
-
-    Parameters
-    ----------
-    explained variance: integer, optional, default=80
-        the number of modes that explain the cumulative variance of the dataset
-
-    da_type: string, optional, default=lda
-        type of discriminant analysis; lda or qda
-
-    """
-
-    def __init__(self, explained_variance=0.8, da_type='lda'):
-        self.explained_variance = explained_variance
-        self.da_type = da_type
-        
-
-    def fit(self, X_flat_train, y_train):
+    def predict(self,X_flat_test):
 
         """
-        Train PCA - LDA classifier
-
-        Parameters
-        ----------
-        X_flat_train: numpy 2d array of shape [n_samples,n_features]
-            This is the neural data.
-            See example file for an example of how to format the neural data correctly
-
-        y_train: numpy 1d array of shape (n_samples), with integers representing classes                    
-            This is the outputs that are being predicted
-        """
-        
-        # choose discriminant type
-        if (self.da_type == 'lda'):
-            da_model = da.LinearDiscriminantAnalysis() # linear discriminant analysis
-        else:
-            da_model = da.QuadraticDiscriminantAnalysis() # Quadratic discriminant analysis
-
-        # Create a pipeline classifier
-        pca_lda = Pipeline(steps =[('pca',PCA(n_components=self.explained_variance)),('discriminant', da_model)]) 
-
-        # Fit the model
-        pca_lda.fit(X_flat_train,y_train)
-
-        self.model = pca_lda        
-
-    def predict(self, X_flat_test):
-
-        """
-        Predict outcomes using trained PCA LDA Decoder
+        Predict outcomes using trained XGBoost Decoder
 
         Parameters
         ----------
@@ -1731,155 +1675,11 @@ class  PcaLdaClassification(BaseEstimator):
 
         Returns
         -------
-        y_test_predicted: numpy 1d array with integers as classes
+        y_test_predicted: numpy 2d array of shape [n_samples,n_outputs]
             The predicted outputs
         """
 
-        
-        pca_lda_fit = self.model  # Get fit model
-        y_test_predicted = pca_lda_fit.predict(X_flat_test)  # Make prediction
-        return y_test_predicted 
-    
-    def get_scores(self, deep=True):
-        """
-        Get scores of pca and lda model
-
-        Args:
-            deep (bool, optional): Defaults to True.
-            
-        Returns:
-            scores: dict
-            Returns fitted scores of PCA and LDA
-        """
-        pca = self.model['pca']
-        da = self.model['discriminant']
-        scores = dict()
-        scores['pca'] = pca.componens_
-        scores['discriminant'] = da.coef_
-        return scores
-    
-    def score(self, X, y, sample_weight=None):
-        """Returns the mean accuracy on the given test data and labels.
-
-        In multi-label classification, this is the subset accuracy
-        which is a harsh metric since you require for each sample that
-        each label set be correctly predicted.
-
-        Parameters
-        ----------
-        X : array-like, shape = (n_samples, n_features)
-            Test samples.
-
-        y : array-like, shape = (n_samples) or (n_samples, n_outputs)
-            True labels for X.
-
-        sample_weight : array-like, shape = [n_samples], optional
-            Sample weights.
-
-        Returns
-        -------
-        score : float
-            Mean accuracy of self.predict(X) wrt. y.
-
-        """
-        from sklearn.metrics import accuracy_score
-        return accuracy_score(y, self.predict(X), sample_weight=sample_weight)
-    
-
-    ##################### PRINCIPAL COMPONENT ANALYSIS Wrapper for classification function  ##########################
-
-from sklearn.base import BaseEstimator
-from sklearn.decomposition import PCA
-from sklearn.pipeline import Pipeline
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
-
-class PcaEstimateDecoder(BaseEstimator):
-    """
-    Class for the PCA - SVM Classifier
-
-    Parameters
-    ----------
-    explained_variance: float, optional, default=0.8
-        the cumulative explained variance ratio required for PCA
-
-    clf: object, optional, default=SVC()
-        the classifier object to use for classification
-
-    clf_params: dict, optional
-        Additional parameters to be passed to the classifier (e.g., {'param_name': value})
-
-    """
-
-    def __init__(self, explained_variance=0.8, clf=SVC(), clf_params=None):
-        self.explained_variance = explained_variance
-        self.clf = clf
-        self.clf_params = clf_params
-        self._initialize_model()
-
-    def _initialize_model(self):
-        self.pca = PCA(n_components=self.explained_variance)
-        if self.clf_params is not None:
-            
-            self.model = Pipeline(steps=[('pca', self.pca), ('model', self.clf.set_params(**self.clf_params))])
-        else:
-            print('No initial parameters')
-            self.model = Pipeline(steps=[('pca', self.pca), ('model', self.clf)])
-
-    def fit(self, X_flat_train, y_train):
-        """
-        Train PCA - SVM classifier
-
-        Parameters
-        ----------
-        X_flat_train: numpy 2d array of shape [n_samples, n_features]
-            This is the neural data.
-            See example file for an example of how to format the neural data correctly
-
-        y_train: numpy 1d array of shape (n_samples), with integers representing classes
-            This is the outputs that are being predicted
-        """
-        self._initialize_model()       
-        self.model.fit(X_flat_train, y_train)
-
-    def predict(self, X_flat_test):
-        """
-        Predict outcomes using trained PCA - SVM Decoder
-
-        Parameters
-        ----------
-        X_flat_test: numpy 2d array of shape [n_samples, n_features]
-            This is the neural data being used to predict outputs.
-
-        Returns
-        -------
-        y_test_predicted: numpy 1d array with integers as classes
-            The predicted outputs
-        """
-        return self.model.predict(X_flat_test)
-
-    
-
-    def score(self, X, y, sample_weight=None):
-        """
-        Returns the mean accuracy on the given test data and labels.
-
-        Parameters
-        ----------
-        X : array-like, shape = (n_samples, n_features)
-            Test samples.
-
-        y : array-like, shape = (n_samples,) or (n_samples, n_outputs)
-            True labels for X.
-
-        sample_weight : array-like, shape = [n_samples], optional
-            Sample weights.
-
-        Returns
-        -------
-        score : float
-            Mean accuracy of self.predict(X) wrt. y.
-
-        """
-        return accuracy_score(y, self.predict(X), sample_weight=sample_weight)
-
+        dtest = xgb.DMatrix(X_flat_test) #Put in XGB format
+        bst=self.model #Get fit model
+        y_test_predicted = bst.predict(dtest) #Make prediction
+        return y_test_predicted
